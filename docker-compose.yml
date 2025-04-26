@@ -8,7 +8,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_API_URL=http://backend:7263
+      - REACT_APP_API_URL=https://backend:7263
     depends_on:
       - backend
 
@@ -20,4 +20,4 @@ services:
       - "7263:7263"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:5000 
+      - ASPNETCORE_URLS=http://+:7263 

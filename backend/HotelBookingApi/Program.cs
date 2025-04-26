@@ -19,10 +19,10 @@ builder.Services.AddSwaggerGen();
 // Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalhost3000",
+    options.AddPolicy("AllowFrontend",
         builder =>
         {
-            builder.WithOrigins("http://localhost:3000")
+            builder.WithOrigins("http://frontend:3000", "http://localhost:3000")
                    .AllowAnyMethod()
                    .AllowAnyHeader();
         });
@@ -42,9 +42,23 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowLocalhost3000");
+app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
+
+// Add error handling middleware
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsJsonAsync(new { error = "Internal server error", message = ex.Message });
+    }
+});
 
 // Seed initial data
 using (var scope = app.Services.CreateScope())

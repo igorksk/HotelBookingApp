@@ -10,40 +10,57 @@ namespace HotelBookingApi.Controllers;
 public class HotelsController : ControllerBase
 {
     private readonly HotelBookingContext _context;
+    private readonly ILogger<HotelsController> _logger;
 
-    public HotelsController(HotelBookingContext context)
+    public HotelsController(HotelBookingContext context, ILogger<HotelsController> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<HotelDto>>> GetHotels()
     {
-        var hotels = await _context.Hotels
-            .Include(h => h.City)
-                .ThenInclude(c => c.Country)
-            .Include(h => h.Rooms)
-            .Select(h => new HotelDto
-            {
-                Id = h.Id,
-                Name = h.Name,
-                Address = h.Address,
-                Rating = h.Rating,
-                CityName = h.City.Name,
-                CountryName = h.City.Country.Name,
-                CountryCode = h.City.Country.Code,
-                Rooms = h.Rooms.Select(r => new RoomDto
+        try
+        {
+            _logger.LogInformation("Getting all hotels");
+            var hotels = await _context.Hotels
+                .Include(h => h.City)
+                    .ThenInclude(c => c.Country)
+                .Include(h => h.Rooms)
+                .Select(h => new HotelDto
                 {
-                    Id = r.Id,
-                    RoomNumber = r.RoomNumber,
-                    Type = r.Type,
-                    PricePerNight = r.PricePerNight,
-                    IsAvailable = r.IsAvailable
-                }).ToList()
-            })
-            .ToListAsync();
+                    Id = h.Id,
+                    Name = h.Name,
+                    Address = h.Address,
+                    Rating = h.Rating,
+                    CityName = h.City.Name,
+                    CountryName = h.City.Country.Name,
+                    CountryCode = h.City.Country.Code,
+                    Rooms = h.Rooms.Select(r => new RoomDto
+                    {
+                        Id = r.Id,
+                        RoomNumber = r.RoomNumber,
+                        Type = r.Type,
+                        PricePerNight = r.PricePerNight,
+                        IsAvailable = r.IsAvailable
+                    }).ToList()
+                })
+                .ToListAsync();
 
-        return hotels;
+            if (!hotels.Any())
+            {
+                _logger.LogWarning("No hotels found in the database");
+                return Ok(new List<HotelDto>());
+            }
+
+            return Ok(hotels);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while getting hotels");
+            throw;
+        }
     }
 
     [HttpGet("{id}")]
