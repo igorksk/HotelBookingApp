@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Container,
@@ -27,12 +27,14 @@ const HotelList = () => {
       try {
         setLoading(true);
         setError(null);
-        const location = searchParams.get('location');
+        const country = searchParams.get('country');
+        const city = searchParams.get('city');
         const checkIn = searchParams.get('checkIn');
         const checkOut = searchParams.get('checkOut');
         
         const params = {
-          ...(location && { location }),
+          ...(country && { country }),
+          ...(city && { city }),
           ...(checkIn && { checkIn }),
           ...(checkOut && { checkOut }),
         };

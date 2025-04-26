@@ -1,13 +1,11 @@
-namespace HotelBookingApi.Models;
+namespace HotelBookingApi.DTOs;
 
-public class Room
+public class UpdateRoomDto
 {
     public int Id { get; set; }
     public string RoomNumber { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public decimal PricePerNight { get; set; }
-    public bool IsAvailable { get; set; } = true;
+    public bool IsAvailable { get; set; }
     public int HotelId { get; set; }
-    public Hotel Hotel { get; set; } = null!;
-    public List<Booking> Bookings { get; set; } = [];
 }

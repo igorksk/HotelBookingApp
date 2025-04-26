@@ -1,6 +1,6 @@
-import React from 'react';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
+import { AdminPanelSettings } from '@mui/icons-material';
 
 const Navbar = () => {
   return (
@@ -18,6 +18,14 @@ const Navbar = () => {
           </Button>
           <Button color="inherit" component={RouterLink} to="/my-bookings">
             My Bookings
+          </Button>
+          <Button
+            color="inherit"
+            component={RouterLink}
+            to="/admin"
+            startIcon={<AdminPanelSettings />}
+          >
+            Admin
           </Button>
         </Box>
       </Toolbar>

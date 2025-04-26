@@ -1,138 +1,68 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using HotelBookingApi.Data;
+using HotelBookingApi.DTOs;
 using HotelBookingApi.Models;
+using HotelBookingApi.Repository.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBookingApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class HotelsController : ControllerBase
+public class HotelsController(IHotelRepository repository, ILogger<HotelsController> _logger) : ControllerBase
 {
-    private readonly HotelBookingContext _context;
-
-    public HotelsController(HotelBookingContext context)
-    {
-        _context = context;
-    }
-
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<HotelDto>>> GetHotels()
+    public async Task<ActionResult<IEnumerable<HotelDto>>> GetHotels(string? country, string? city, DateTime? checkIn, DateTime? checkOut)
     {
-        var hotels = await _context.Hotels
-            .Include(h => h.City)
-                .ThenInclude(c => c.Country)
-            .Include(h => h.Rooms)
-            .Select(h => new HotelDto
-            {
-                Id = h.Id,
-                Name = h.Name,
-                Address = h.Address,
-                Rating = h.Rating,
-                CityName = h.City.Name,
-                CountryName = h.City.Country.Name,
-                CountryCode = h.City.Country.Code,
-                Rooms = h.Rooms.Select(r => new RoomDto
-                {
-                    Id = r.Id,
-                    RoomNumber = r.RoomNumber,
-                    Type = r.Type,
-                    PricePerNight = r.PricePerNight,
-                    IsAvailable = r.IsAvailable
-                }).ToList()
-            })
-            .ToListAsync();
+        _logger.LogInformation("Getting hotel list (filters: country={Country}, city={City})", country, city);
 
-        return hotels;
+        var hotels = await repository.GetHotelsAsync(country, city, checkIn, checkOut);
+        return Ok(hotels);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<HotelDto>> GetHotel(int id)
     {
-        var hotel = await _context.Hotels
-            .Include(h => h.City)
-                .ThenInclude(c => c.Country)
-            .Include(h => h.Rooms)
-            .Select(h => new HotelDto
-            {
-                Id = h.Id,
-                Name = h.Name,
-                Address = h.Address,
-                Rating = h.Rating,
-                CityName = h.City.Name,
-                CountryName = h.City.Country.Name,
-                CountryCode = h.City.Country.Code,
-                Rooms = h.Rooms.Select(r => new RoomDto
-                {
-                    Id = r.Id,
-                    RoomNumber = r.RoomNumber,
-                    Type = r.Type,
-                    PricePerNight = r.PricePerNight,
-                    IsAvailable = r.IsAvailable
-                }).ToList()
-            })
-            .FirstOrDefaultAsync(h => h.Id == id);
+        _logger.LogInformation("Getting hotel by id={HotelId}", id);
 
-        if (hotel == null)
-        {
-            return NotFound();
-        }
-
-        return hotel;
+        var hotel = await repository.GetHotelAsync(id);
+        return hotel is null ? NotFound() : Ok(hotel);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Hotel>> PostHotel(Hotel hotel)
+    public async Task<ActionResult<Hotel>> PostHotel(CreateHotelDto dto)
     {
-        _context.Hotels.Add(hotel);
-        await _context.SaveChangesAsync();
+        if (dto == null || string.IsNullOrWhiteSpace(dto.Name) || dto.CityId <= 0)
+            return BadRequest("Invalid hotel data");
 
-        return CreatedAtAction(nameof(GetHotel), new { id = hotel.Id }, hotel);
+        if (!await repository.CityExistsAsync(dto.CityId))
+            return BadRequest("Specified city does not exist");
+
+        _logger.LogInformation("Creating new hotel: {Name}", dto?.Name);
+
+        var hotel = await repository.CreateHotelAsync(dto!);
+        return hotel == null ? BadRequest("Could not create hotel") : CreatedAtAction(nameof(GetHotel), new { id = hotel.Id }, hotel);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutHotel(int id, Hotel hotel)
+    public async Task<IActionResult> PutHotel(int id, UpdateHotelDto dto)
     {
-        if (id != hotel.Id)
-        {
-            return BadRequest();
-        }
+        if (dto == null || id != dto.Id)
+            return BadRequest("Invalid update data");
 
-        _context.Entry(hotel).State = EntityState.Modified;
+        if (!await repository.CityExistsAsync(dto.CityId))
+            return BadRequest("Specified city does not exist");
 
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!HotelExists(id))
-            {
-                return NotFound();
-            }
-            throw;
-        }
+        _logger.LogInformation("Updating hotel id={HotelId}", id);
 
-        return NoContent();
+        var success = await repository.UpdateHotelAsync(id, dto);
+        return success ? NoContent() : NotFound();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteHotel(int id)
     {
-        var hotel = await _context.Hotels.FindAsync(id);
-        if (hotel == null)
-        {
-            return NotFound();
-        }
+        _logger.LogInformation("Deleting hotel id={HotelId}", id);
 
-        _context.Hotels.Remove(hotel);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        var success = await repository.DeleteHotelAsync(id);
+        return success ? NoContent() : NotFound();
     }
-
-    private bool HotelExists(int id)
-    {
-        return _context.Hotels.Any(e => e.Id == id);
-    }
-} 
+}

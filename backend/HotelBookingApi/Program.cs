@@ -1,6 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using HotelBookingApi.Data;
-using HotelBookingApi.Models;
+using HotelBookingApi.Repository;
+using HotelBookingApi.Repository.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,13 +17,19 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddTransient<IBookingRepository, BookingRepository>();
+builder.Services.AddTransient<ICityRepository, CityRepository>();
+builder.Services.AddTransient<ICountryRepository, CountryRepository>();
+builder.Services.AddTransient<IHotelRepository, HotelRepository>();
+builder.Services.AddTransient<IRoomRepository, RoomRepository>();
+
 // Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalhost3000",
+    options.AddPolicy("AllowFrontend",
         builder =>
         {
-            builder.WithOrigins("http://localhost:3000")
+            builder.WithOrigins("http://frontend:3000", "http://localhost:3000")
                    .AllowAnyMethod()
                    .AllowAnyHeader();
         });
@@ -42,9 +49,23 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowLocalhost3000");
+app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
+
+// Add error handling middleware
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsJsonAsync(new { error = "Internal server error", message = ex.Message });
+    }
+});
 
 // Seed initial data
 using (var scope = app.Services.CreateScope())

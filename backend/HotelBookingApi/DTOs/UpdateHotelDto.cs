@@ -1,12 +1,10 @@
-namespace HotelBookingApi.Models;
+namespace HotelBookingApi.DTOs;
 
-public class Hotel
+public class UpdateHotelDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
-    public int CityId { get; set; }
-    public City City { get; set; } = null!;
     public int Rating { get; set; }
-    public List<Room> Rooms { get; set; } = [];
+    public int CityId { get; set; }
 }
