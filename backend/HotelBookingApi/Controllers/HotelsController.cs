@@ -19,42 +19,64 @@ public class HotelsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<HotelDto>>> GetHotels()
+    public async Task<ActionResult<IEnumerable<HotelDto>>> GetHotels(
+        [FromQuery] string? country,
+        [FromQuery] string? city,
+        [FromQuery] DateTime? checkIn,
+        [FromQuery] DateTime? checkOut)
     {
         try
         {
-            _logger.LogInformation("Getting all hotels");
-            var hotels = await _context.Hotels
+            _logger.LogInformation("Getting filtered hotels");
+
+            var hotelsQuery = _context.Hotels
                 .Include(h => h.City)
                     .ThenInclude(c => c.Country)
                 .Include(h => h.Rooms)
-                .Select(h => new HotelDto
-                {
-                    Id = h.Id,
-                    Name = h.Name,
-                    Address = h.Address,
-                    Rating = h.Rating,
-                    CityName = h.City.Name,
-                    CountryName = h.City.Country.Name,
-                    CountryCode = h.City.Country.Code,
-                    Rooms = h.Rooms.Select(r => new RoomDto
-                    {
-                        Id = r.Id,
-                        RoomNumber = r.RoomNumber,
-                        Type = r.Type,
-                        PricePerNight = r.PricePerNight,
-                        IsAvailable = r.IsAvailable
-                    }).ToList()
-                })
-                .ToListAsync();
+                    .ThenInclude(r => r.Bookings)
+                .AsQueryable();
 
-            if (!hotels.Any())
+            if (!string.IsNullOrEmpty(country))
+                hotelsQuery = hotelsQuery.Where(h => h.City.Country.Name == country);
+
+            if (!string.IsNullOrEmpty(city))
+                hotelsQuery = hotelsQuery.Where(h => h.City.Name == city);
+
+            var hotels = await hotelsQuery.ToListAsync();
+
+            // Filter by dates: keep only hotels with at least one available room
+            if (checkIn.HasValue && checkOut.HasValue)
             {
-                _logger.LogWarning("No hotels found in the database");
-                return Ok(new List<HotelDto>());
+                hotels = hotels
+                    .Where(h => h.Rooms.Any(r =>
+                        r.IsAvailable &&
+                        !r.Bookings.Any(b =>
+                            (checkIn < b.CheckOutDate && checkOut > b.CheckInDate)
+                        )
+                    ))
+                    .ToList();
             }
 
-            return Ok(hotels);
+            var hotelDtos = hotels.Select(h => new HotelDto
+            {
+                Id = h.Id,
+                Name = h.Name,
+                Address = h.Address,
+                Rating = h.Rating,
+                CityName = h.City.Name,
+                CountryName = h.City.Country.Name,
+                CountryCode = h.City.Country.Code,
+                Rooms = h.Rooms.Select(r => new RoomDto
+                {
+                    Id = r.Id,
+                    RoomNumber = r.RoomNumber,
+                    Type = r.Type,
+                    PricePerNight = r.PricePerNight,
+                    IsAvailable = r.IsAvailable
+                }).ToList()
+            }).ToList();
+
+            return Ok(hotelDtos);
         }
         catch (Exception ex)
         {

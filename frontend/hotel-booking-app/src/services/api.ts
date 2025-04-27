@@ -4,7 +4,7 @@ import { Hotel, HotelDto, Room, RoomDto, Booking, BookingDto } from '../types/ap
 const API_BASE_URL = 'http://localhost:7263';
 
 export const hotelsApi = {
-  getAll: async (params?: { location?: string; checkIn?: string; checkOut?: string }) => {
+  getAll: async (params?: { country?: string; city?: string; checkIn?: string; checkOut?: string }) => {
     const response = await axios.get<HotelDto[]>(`${API_BASE_URL}/api/Hotels`, { params });
     return response.data;
   },

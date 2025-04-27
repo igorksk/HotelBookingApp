@@ -17,11 +17,13 @@ const Home = () => {
   const navigate = useNavigate();
   const [checkIn, setCheckIn] = React.useState<Date | null>(null);
   const [checkOut, setCheckOut] = React.useState<Date | null>(null);
-  const [location, setLocation] = React.useState('');
+  const [country, setCountry] = React.useState('');
+  const [city, setCity] = React.useState('');
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (location) params.append('location', location);
+    if (country) params.append('country', country);
+    if (city) params.append('city', city);
     if (checkIn) params.append('checkIn', checkIn.toISOString());
     if (checkOut) params.append('checkOut', checkOut.toISOString());
     navigate(`/hotels?${params.toString()}`);
@@ -40,24 +42,33 @@ const Home = () => {
 
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
         <Grid container spacing={3}>
-          <Box sx={{ width: { xs: '100%', md: '33.33%' }, p: 1 }}>
+          <Box sx={{ width: { xs: '100%', md: '25%' }, p: 1 }}>
             <TextField
               fullWidth
-              label="Location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Where are you going?"
+              label="Country"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              placeholder="Enter country"
+            />
+          </Box>
+          <Box sx={{ width: { xs: '100%', md: '25%' }, p: 1 }}>
+            <TextField
+              fullWidth
+              label="City"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="Enter city"
             />
           </Box>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <Box sx={{ width: { xs: '100%', md: '25%' }, p: 1 }}>
+            <Box sx={{ width: { xs: '100%', md: '20%' }, p: 1 }}>
               <DatePicker
                 label="Check-in"
                 value={checkIn}
                 onChange={(newValue) => setCheckIn(newValue)}
               />
             </Box>
-            <Box sx={{ width: { xs: '100%', md: '25%' }, p: 1 }}>
+            <Box sx={{ width: { xs: '100%', md: '20%' }, p: 1 }}>
               <DatePicker
                 label="Check-out"
                 value={checkOut}
@@ -65,7 +76,7 @@ const Home = () => {
               />
             </Box>
           </LocalizationProvider>
-          <Box sx={{ width: { xs: '100%', md: '16.67%' }, p: 1 }}>
+          <Box sx={{ width: { xs: '100%', md: '10%' }, p: 1 }}>
             <Button
               fullWidth
               variant="contained"
