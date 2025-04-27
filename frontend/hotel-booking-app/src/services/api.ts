@@ -41,7 +41,22 @@ export const bookingsApi = {
   },
 };
 
+export const locationsApi = {
+  getCountries: async () => {
+    const response = await axios.get<string[]>(`${API_BASE_URL}/api/Locations/countries`);
+    return response.data;
+  },
+
+  getCities: async (country?: string) => {
+    const response = await axios.get<string[]>(`${API_BASE_URL}/api/Locations/cities`, {
+      params: { country }
+    });
+    return response.data;
+  }
+};
+
 export default {
   hotels: hotelsApi,
   bookings: bookingsApi,
+  locations: locationsApi,
 }; 
