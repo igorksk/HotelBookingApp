@@ -9,6 +9,7 @@ import {
   CircularProgress,
   Alert,
   Paper,
+  Snackbar,
 } from '@mui/material';
 import type { Booking } from '../types/api.types';
 import { HotelDto, RoomDto } from '../types/api.types';
@@ -21,6 +22,7 @@ const BookingPage = () => {
   const [room, setRoom] = useState<RoomDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     guestName: '',
     guestEmail: '',
@@ -78,11 +80,19 @@ const BookingPage = () => {
       };
 
       await bookingsApi.create(booking);
-      navigate('/bookings');
+      setSuccessMessage('Booking created successfully!');
+      setTimeout(() => {
+        navigate('/bookings');
+      }, 2000);
     } catch (err) {
       setError('Failed to create booking. Please try again later.');
       console.error('Error creating booking:', err);
     }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSuccessMessage(null);
+    setError(null);
   };
 
   if (loading) {
@@ -191,6 +201,28 @@ const BookingPage = () => {
           </Button>
         </Box>
       </Paper>
+
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={2000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
