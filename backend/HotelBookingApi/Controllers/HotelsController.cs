@@ -7,16 +7,10 @@ namespace HotelBookingApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class HotelsController : ControllerBase
+public class HotelsController(HotelBookingContext context, ILogger<HotelsController> logger) : ControllerBase
 {
-    private readonly HotelBookingContext _context;
-    private readonly ILogger<HotelsController> _logger;
-
-    public HotelsController(HotelBookingContext context, ILogger<HotelsController> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
+    private readonly HotelBookingContext _context = context;
+    private readonly ILogger<HotelsController> _logger = logger;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<HotelDto>>> GetHotels(
@@ -47,14 +41,13 @@ public class HotelsController : ControllerBase
             // Filter by dates: keep only hotels with at least one available room
             if (checkIn.HasValue && checkOut.HasValue)
             {
-                hotels = hotels
+                hotels = [.. hotels
                     .Where(h => h.Rooms.Any(r =>
                         r.IsAvailable &&
                         !r.Bookings.Any(b =>
                             (checkIn < b.CheckOutDate && checkOut > b.CheckInDate)
                         )
-                    ))
-                    .ToList();
+                    ))];
             }
 
             var hotelDtos = hotels.Select(h => new HotelDto
@@ -63,17 +56,17 @@ public class HotelsController : ControllerBase
                 Name = h.Name,
                 Address = h.Address,
                 Rating = h.Rating,
-                CityName = h.City.Name,
-                CountryName = h.City.Country.Name,
-                CountryCode = h.City.Country.Code,
-                Rooms = h.Rooms.Select(r => new RoomDto
+                CityName = h.City?.Name ?? string.Empty,
+                CountryName = h.City?.Country?.Name ?? string.Empty,
+                CountryCode = h.City?.Country?.Code ?? string.Empty,
+                Rooms = [.. h.Rooms.Select(r => new RoomDto
                 {
                     Id = r.Id,
                     RoomNumber = r.RoomNumber,
                     Type = r.Type,
                     PricePerNight = r.PricePerNight,
                     IsAvailable = r.IsAvailable
-                }).ToList()
+                })]
             }).ToList();
 
             return Ok(hotelDtos);

@@ -7,16 +7,10 @@ namespace HotelBookingApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class LocationsController : ControllerBase
+public class LocationsController(HotelBookingContext context, ILogger<LocationsController> logger) : ControllerBase
 {
-    private readonly HotelBookingContext _context;
-    private readonly ILogger<LocationsController> _logger;
-
-    public LocationsController(HotelBookingContext context, ILogger<LocationsController> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
+    private readonly HotelBookingContext _context = context;
+    private readonly ILogger<LocationsController> _logger = logger;
 
     [HttpGet("countries")]
     public async Task<ActionResult<IEnumerable<string>>> GetCountries()

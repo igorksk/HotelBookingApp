@@ -1,6 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using HotelBookingApi.Data;
-using HotelBookingApi.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);

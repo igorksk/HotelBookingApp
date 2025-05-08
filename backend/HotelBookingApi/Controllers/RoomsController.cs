@@ -7,25 +7,27 @@ namespace HotelBookingApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class RoomsController : ControllerBase
+public class RoomsController(HotelBookingContext context) : ControllerBase
 {
-    private readonly HotelBookingContext _context;
-
-    public RoomsController(HotelBookingContext context)
-    {
-        _context = context;
-    }
+    private readonly HotelBookingContext _context = context;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Room>>> GetRooms()
     {
-        return await _context.Rooms.Include(r => r.Hotel).ToListAsync();
+        return await _context.Rooms
+            .Include(r => r.Hotel)
+                .ThenInclude(h => h.City)
+                    .ThenInclude(c => c.Country)
+            .ToListAsync();
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Room>> GetRoom(int id)
     {
-        var room = await _context.Rooms.Include(r => r.Hotel)
+        var room = await _context.Rooms
+            .Include(r => r.Hotel)
+                .ThenInclude(h => h.City)
+                    .ThenInclude(c => c.Country)
             .FirstOrDefaultAsync(r => r.Id == id);
 
         if (room == null)

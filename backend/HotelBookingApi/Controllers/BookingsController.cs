@@ -7,14 +7,9 @@ namespace HotelBookingApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class BookingsController : ControllerBase
+public class BookingsController(HotelBookingContext context) : ControllerBase
 {
-    private readonly HotelBookingContext _context;
-
-    public BookingsController(HotelBookingContext context)
-    {
-        _context = context;
-    }
+    private readonly HotelBookingContext _context = context;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookings()
@@ -142,14 +137,14 @@ public class BookingsController : ControllerBase
             CheckOutDate = booking.CheckOutDate,
             TotalPrice = booking.TotalPrice,
             Status = booking.Status,
-            RoomNumber = room.RoomNumber,
-            RoomType = room.Type,
-            PricePerNight = room.PricePerNight,
-            HotelName = room.Hotel.Name,
-            HotelAddress = room.Hotel.Address,
-            HotelCity = room.Hotel.City.Name,
-            HotelCountry = room.Hotel.City.Country.Name,
-            CountryCode = room.Hotel.City.Country.Code
+            RoomNumber = room?.RoomNumber ?? string.Empty,
+            RoomType = room?.Type ?? string.Empty,
+            PricePerNight = room?.PricePerNight ?? 0,
+            HotelName = room?.Hotel?.Name ?? string.Empty,
+            HotelAddress = room?.Hotel?.Address ?? string.Empty,
+            HotelCity = room?.Hotel?.City?.Name ?? string.Empty,
+            HotelCountry = room?.Hotel?.City?.Country?.Name ?? string.Empty,
+            CountryCode = room?.Hotel?.City?.Country?.Code ?? string.Empty
         };
 
         return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, bookingDto);

@@ -8,6 +8,6 @@ public class Room
     public decimal PricePerNight { get; set; }
     public bool IsAvailable { get; set; } = true;
     public int HotelId { get; set; }
-    public Hotel? Hotel { get; set; }
+    public Hotel Hotel { get; set; } = null!;
     public List<Booking> Bookings { get; set; } = new();
 } 
