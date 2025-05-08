@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using HotelBookingApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingApi.Data;
 
@@ -25,4 +25,4 @@ public class HotelBookingContext(DbContextOptions<HotelBookingContext> options) 
             .HasForeignKey(h => h.CityId)
             .OnDelete(DeleteBehavior.Restrict);
     }
-} 
+}

@@ -7,4 +7,4 @@ public class City
     public int CountryId { get; set; }
     public Country Country { get; set; } = null!;
     public List<Hotel> Hotels { get; set; } = new();
-} 
+}

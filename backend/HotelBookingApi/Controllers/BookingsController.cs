@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using HotelBookingApi.Data;
 using HotelBookingApi.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingApi.Controllers;
 
@@ -228,4 +228,4 @@ public class BookingsController(HotelBookingContext context) : ControllerBase
     {
         return _context.Bookings.Any(e => e.Id == id);
     }
-} 
+}

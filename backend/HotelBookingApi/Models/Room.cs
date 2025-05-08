@@ -10,4 +10,4 @@ public class Room
     public int HotelId { get; set; }
     public Hotel Hotel { get; set; } = null!;
     public List<Booking> Bookings { get; set; } = new();
-} 
+}

@@ -9,4 +9,4 @@ public class Hotel
     public City City { get; set; } = null!;
     public int Rating { get; set; }
     public List<Room> Rooms { get; set; } = new();
-} 
+}

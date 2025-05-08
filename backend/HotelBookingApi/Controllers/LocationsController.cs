@@ -1,7 +1,6 @@
+using HotelBookingApi.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using HotelBookingApi.Data;
-using HotelBookingApi.Models;
 
 namespace HotelBookingApi.Controllers;
 
@@ -60,4 +59,4 @@ public class LocationsController(HotelBookingContext context, ILogger<LocationsC
             throw;
         }
     }
-} 
+}

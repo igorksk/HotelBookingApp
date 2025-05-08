@@ -11,4 +11,4 @@ public class Booking
     public Room Room { get; set; } = null!;
     public decimal TotalPrice { get; set; }
     public string Status { get; set; } = "Confirmed";
-} 
+}
