@@ -23,7 +23,7 @@ import {
   InputLabel,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../../api/axios';
 
 interface City {
   id: number;
@@ -47,7 +47,7 @@ const Cities: React.FC = () => {
 
   const fetchCities = async () => {
     try {
-      const response = await axios.get('/api/cities');
+      const response = await api.get('/cities');
       setCities(response.data);
     } catch (error) {
       console.error('Error fetching cities:', error);
@@ -57,7 +57,7 @@ const Cities: React.FC = () => {
 
   const fetchCountries = async () => {
     try {
-      const response = await axios.get('/api/countries');
+      const response = await api.get('/countries');
       setCountries(response.data);
     } catch (error) {
       console.error('Error fetching countries:', error);
@@ -91,9 +91,9 @@ const Cities: React.FC = () => {
     e.preventDefault();
     try {
       if (editingCity) {
-        await axios.put(`/api/cities/${editingCity.id}`, formData);
+        await api.put(`/cities/${editingCity.id}`, formData);
       } else {
-        await axios.post('/api/cities', formData);
+        await api.post('/cities', formData);
       }
       handleClose();
       fetchCities();
@@ -106,7 +106,7 @@ const Cities: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this city?')) {
       try {
-        await axios.delete(`/api/cities/${id}`);
+        await api.delete(`/cities/${id}`);
         fetchCities();
       } catch (error) {
         console.error('Error deleting city:', error);

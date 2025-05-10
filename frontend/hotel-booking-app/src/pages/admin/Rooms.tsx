@@ -25,7 +25,7 @@ import {
   FormControlLabel,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../../api/axios';
 
 interface Room {
   id: number;
@@ -60,7 +60,7 @@ const Rooms: React.FC = () => {
 
   const fetchRooms = async () => {
     try {
-      const response = await axios.get('/api/rooms');
+      const response = await api.get('/rooms');
       setRooms(response.data);
     } catch (error) {
       console.error('Error fetching rooms:', error);
@@ -70,7 +70,7 @@ const Rooms: React.FC = () => {
 
   const fetchHotels = async () => {
     try {
-      const response = await axios.get('/api/hotels');
+      const response = await api.get('/hotels');
       setHotels(response.data);
     } catch (error) {
       console.error('Error fetching hotels:', error);
@@ -128,9 +128,9 @@ const Rooms: React.FC = () => {
       };
 
       if (editingRoom) {
-        await axios.put(`/api/rooms/${editingRoom.id}`, data);
+        await api.put(`/rooms/${editingRoom.id}`, data);
       } else {
-        await axios.post('/api/rooms', data);
+        await api.post('/rooms', data);
       }
       handleClose();
       fetchRooms();
@@ -143,7 +143,7 @@ const Rooms: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this room?')) {
       try {
-        await axios.delete(`/api/rooms/${id}`);
+        await api.delete(`/rooms/${id}`);
         fetchRooms();
       } catch (error) {
         console.error('Error deleting room:', error);
