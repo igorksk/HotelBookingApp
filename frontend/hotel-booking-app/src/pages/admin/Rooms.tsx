@@ -25,43 +25,27 @@ import {
   FormControlLabel,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import api from '../../api/axios';
-
-interface Room {
-  id: number;
-  number: string;
-  type: string;
-  pricePerNight: number;
-  available: boolean;
-  hotelId: number;
-}
-
-interface Hotel {
-  id: number;
-  name: string;
-  address: string;
-  rating: number;
-  cityId: number;
-}
+import { roomsApi, hotelsApi } from '../../services/api';
+import { Room, Hotel, RoomDto, HotelDto } from '../../types/api.types';
 
 const Rooms: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [hotels, setHotels] = useState<HotelDto[]>([]);
   const [open, setOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [formData, setFormData] = useState({
-    number: '',
+    roomNumber: '',
     type: '',
     pricePerNight: '',
-    available: true,
+    isAvailable: true,
     hotelId: '',
   });
   const [error, setError] = useState<string | null>(null);
 
   const fetchRooms = async () => {
     try {
-      const response = await api.get('/rooms');
-      setRooms(response.data);
+      const data = await roomsApi.getAll();
+      setRooms(data);
     } catch (error) {
       console.error('Error fetching rooms:', error);
       setError('Failed to fetch rooms');
@@ -70,8 +54,8 @@ const Rooms: React.FC = () => {
 
   const fetchHotels = async () => {
     try {
-      const response = await api.get('/hotels');
-      setHotels(response.data);
+      const data = await hotelsApi.getAll();
+      setHotels(data);
     } catch (error) {
       console.error('Error fetching hotels:', error);
       setError('Failed to fetch hotels');
@@ -87,19 +71,19 @@ const Rooms: React.FC = () => {
     if (room) {
       setEditingRoom(room);
       setFormData({
-        number: room.number,
-        type: room.type,
+        roomNumber: room.roomNumber || '',
+        type: room.type || '',
         pricePerNight: room.pricePerNight.toString(),
-        available: room.available,
+        isAvailable: room.isAvailable,
         hotelId: room.hotelId.toString(),
       });
     } else {
       setEditingRoom(null);
       setFormData({
-        number: '',
+        roomNumber: '',
         type: '',
         pricePerNight: '',
-        available: true,
+        isAvailable: true,
         hotelId: '',
       });
     }
@@ -110,10 +94,10 @@ const Rooms: React.FC = () => {
     setOpen(false);
     setEditingRoom(null);
     setFormData({
-      number: '',
+      roomNumber: '',
       type: '',
       pricePerNight: '',
-      available: true,
+      isAvailable: true,
       hotelId: '',
     });
   };
@@ -121,16 +105,25 @@ const Rooms: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const data = {
-        ...formData,
+      const selectedHotel = hotels.find(h => h.id === parseInt(formData.hotelId));
+      if (!selectedHotel) {
+        throw new Error('Selected hotel not found');
+      }
+
+      const roomData: Omit<Room, 'id'> = {
+        roomNumber: formData.roomNumber,
+        type: formData.type,
         pricePerNight: parseFloat(formData.pricePerNight),
+        isAvailable: formData.isAvailable,
         hotelId: parseInt(formData.hotelId),
+        hotel: selectedHotel as unknown as Hotel, // Временное решение, так как HotelDto не полностью совместим с Hotel
+        bookings: null
       };
 
       if (editingRoom) {
-        await api.put(`/rooms/${editingRoom.id}`, data);
+        await roomsApi.update(editingRoom.id, { ...editingRoom, ...roomData });
       } else {
-        await api.post('/rooms', data);
+        await roomsApi.create(roomData);
       }
       handleClose();
       fetchRooms();
@@ -143,7 +136,7 @@ const Rooms: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this room?')) {
       try {
-        await api.delete(`/rooms/${id}`);
+        await roomsApi.delete(id);
         fetchRooms();
       } catch (error) {
         console.error('Error deleting room:', error);
@@ -180,10 +173,10 @@ const Rooms: React.FC = () => {
           <TableBody>
             {rooms.map((room) => (
               <TableRow key={room.id}>
-                <TableCell>{room.number}</TableCell>
+                <TableCell>{room.roomNumber}</TableCell>
                 <TableCell>{room.type}</TableCell>
                 <TableCell>${room.pricePerNight}</TableCell>
-                <TableCell>{room.available ? 'Yes' : 'No'}</TableCell>
+                <TableCell>{room.isAvailable ? 'Yes' : 'No'}</TableCell>
                 <TableCell>{getHotelName(room.hotelId)}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => handleOpen(room)} color="primary">
@@ -210,8 +203,8 @@ const Rooms: React.FC = () => {
               margin="dense"
               label="Room Number"
               fullWidth
-              value={formData.number}
-              onChange={(e) => setFormData({ ...formData, number: e.target.value })}
+              value={formData.roomNumber}
+              onChange={(e) => setFormData({ ...formData, roomNumber: e.target.value })}
               required
             />
             <TextField
@@ -235,8 +228,8 @@ const Rooms: React.FC = () => {
             <FormControlLabel
               control={
                 <Switch
-                  checked={formData.available}
-                  onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
+                  checked={formData.isAvailable}
+                  onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
                 />
               }
               label="Available"

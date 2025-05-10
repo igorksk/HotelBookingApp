@@ -22,6 +22,32 @@ export const hotelsApi = {
   },
 };
 
+export const roomsApi = {
+  getAll: async () => {
+    const response = await axios.get<Room[]>(`${API_BASE_URL}/api/Rooms`);
+    return response.data;
+  },
+
+  getById: async (id: number) => {
+    const response = await axios.get<Room>(`${API_BASE_URL}/api/Rooms/${id}`);
+    return response.data;
+  },
+
+  create: async (room: Omit<Room, 'id'>) => {
+    const response = await axios.post<Room>(`${API_BASE_URL}/api/Rooms`, room);
+    return response.data;
+  },
+
+  update: async (id: number, room: Room) => {
+    const response = await axios.put(`${API_BASE_URL}/api/Rooms/${id}`, room);
+    return response.data;
+  },
+
+  delete: async (id: number) => {
+    await axios.delete(`${API_BASE_URL}/api/Rooms/${id}`);
+  }
+};
+
 export const bookingsApi = {
   create: async (booking: Omit<Booking, 'id' | 'room' | 'totalPrice'>) => {
     const response = await axios.post<BookingDto>(`${API_BASE_URL}/api/Bookings`, booking);
@@ -100,4 +126,5 @@ export default {
   bookings: bookingsApi,
   countries: countriesApi,
   cities: citiesApi,
+  rooms: roomsApi,
 }; 
