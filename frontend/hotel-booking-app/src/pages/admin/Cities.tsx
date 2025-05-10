@@ -47,7 +47,7 @@ const Cities: React.FC = () => {
 
   const fetchCities = async () => {
     try {
-      const response = await api.get('/cities');
+      const response = await api.get('locations/cities');
       setCities(response.data);
     } catch (error) {
       console.error('Error fetching cities:', error);
@@ -57,7 +57,7 @@ const Cities: React.FC = () => {
 
   const fetchCountries = async () => {
     try {
-      const response = await api.get('/countries');
+      const response = await api.get('locations/countries');
       setCountries(response.data);
     } catch (error) {
       console.error('Error fetching countries:', error);
@@ -91,9 +91,9 @@ const Cities: React.FC = () => {
     e.preventDefault();
     try {
       if (editingCity) {
-        await api.put(`/cities/${editingCity.id}`, formData);
+        await api.put(`locations/cities/${editingCity.id}`, formData);
       } else {
-        await api.post('/cities', formData);
+        await api.post('locations/cities', formData);
       }
       handleClose();
       fetchCities();
@@ -106,7 +106,7 @@ const Cities: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this city?')) {
       try {
-        await api.delete(`/cities/${id}`);
+        await api.delete(`locations/cities/${id}`);
         fetchCities();
       } catch (error) {
         console.error('Error deleting city:', error);

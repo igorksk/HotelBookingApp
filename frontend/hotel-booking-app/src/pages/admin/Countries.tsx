@@ -36,7 +36,7 @@ const Countries: React.FC = () => {
 
   const fetchCountries = async () => {
     try {
-      const response = await api.get('/countries');
+      const response = await api.get('locations/countries');
       setCountries(response.data);
     } catch (error) {
       console.error('Error fetching countries:', error);
@@ -69,9 +69,9 @@ const Countries: React.FC = () => {
     e.preventDefault();
     try {
       if (editingCountry) {
-        await api.put(`/countries/${editingCountry.id}`, formData);
+        await api.put(`locations/countries/${editingCountry.id}`, formData);
       } else {
-        await api.post('/countries', formData);
+        await api.post('locations/countries', formData);
       }
       handleClose();
       fetchCountries();
@@ -84,7 +84,7 @@ const Countries: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this country?')) {
       try {
-        await api.delete(`/countries/${id}`);
+        await api.delete(`locations/countries/${id}`);
         fetchCountries();
       } catch (error) {
         console.error('Error deleting country:', error);
