@@ -1,0 +1,190 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import axios from 'axios';
+
+interface City {
+  id: number;
+  name: string;
+  countryId: number;
+  countryName: string;
+}
+
+interface Country {
+  id: number;
+  name: string;
+}
+
+const Cities: React.FC = () => {
+  const [cities, setCities] = useState<City[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [open, setOpen] = useState(false);
+  const [editingCity, setEditingCity] = useState<City | null>(null);
+  const [formData, setFormData] = useState({ name: '', countryId: '' });
+
+  const fetchCities = async () => {
+    try {
+      const response = await axios.get('/api/cities');
+      setCities(response.data);
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+    }
+  };
+
+  const fetchCountries = async () => {
+    try {
+      const response = await axios.get('/api/countries');
+      setCountries(response.data);
+    } catch (error) {
+      console.error('Error fetching countries:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCities();
+    fetchCountries();
+  }, []);
+
+  const handleOpen = (city?: City) => {
+    if (city) {
+      setEditingCity(city);
+      setFormData({ name: city.name, countryId: city.countryId.toString() });
+    } else {
+      setEditingCity(null);
+      setFormData({ name: '', countryId: '' });
+    }
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setEditingCity(null);
+    setFormData({ name: '', countryId: '' });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingCity) {
+        await axios.put(`/api/cities/${editingCity.id}`, formData);
+      } else {
+        await axios.post('/api/cities', formData);
+      }
+      handleClose();
+      fetchCities();
+    } catch (error) {
+      console.error('Error saving city:', error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this city?')) {
+      try {
+        await axios.delete(`/api/cities/${id}`);
+        fetchCities();
+      } catch (error) {
+        console.error('Error deleting city:', error);
+      }
+    }
+  };
+
+  return (
+    <Box>
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+        <Button variant="contained" color="primary" onClick={() => handleOpen()}>
+          Add City
+        </Button>
+      </Box>
+
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Country</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {cities.map((city) => (
+              <TableRow key={city.id}>
+                <TableCell>{city.name}</TableCell>
+                <TableCell>{city.countryName}</TableCell>
+                <TableCell>
+                  <IconButton onClick={() => handleOpen(city)} color="primary">
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton onClick={() => handleDelete(city.id)} color="error">
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>
+          {editingCity ? 'Edit City' : 'Add City'}
+        </DialogTitle>
+        <form onSubmit={handleSubmit}>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Name"
+              fullWidth
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Country</InputLabel>
+              <Select
+                value={formData.countryId}
+                label="Country"
+                onChange={(e) => setFormData({ ...formData, countryId: e.target.value })}
+                required
+              >
+                {countries.map((country) => (
+                  <MenuItem key={country.id} value={country.id}>
+                    {country.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button type="submit" variant="contained" color="primary">
+              Save
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+    </Box>
+  );
+};
+
+export default Cities; 
