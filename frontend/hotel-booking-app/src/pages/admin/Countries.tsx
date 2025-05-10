@@ -15,9 +15,11 @@ import {
   TableHead,
   TableRow,
   IconButton,
+  Alert,
+  Snackbar,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../../api/axios';
 
 interface Country {
   id: number;
@@ -30,13 +32,15 @@ const Countries: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [editingCountry, setEditingCountry] = useState<Country | null>(null);
   const [formData, setFormData] = useState({ name: '', code: '' });
+  const [error, setError] = useState<string | null>(null);
 
   const fetchCountries = async () => {
     try {
-      const response = await axios.get('/api/countries');
+      const response = await api.get('/api/countries');
       setCountries(response.data);
     } catch (error) {
       console.error('Error fetching countries:', error);
+      setError('Failed to fetch countries');
     }
   };
 
@@ -65,24 +69,26 @@ const Countries: React.FC = () => {
     e.preventDefault();
     try {
       if (editingCountry) {
-        await axios.put(`/api/countries/${editingCountry.id}`, formData);
+        await api.put(`/api/countries/${editingCountry.id}`, formData);
       } else {
-        await axios.post('/api/countries', formData);
+        await api.post('/api/countries', formData);
       }
       handleClose();
       fetchCountries();
     } catch (error) {
       console.error('Error saving country:', error);
+      setError('Failed to save country');
     }
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this country?')) {
       try {
-        await axios.delete(`/api/countries/${id}`);
+        await api.delete(`/api/countries/${id}`);
         fetchCountries();
       } catch (error) {
         console.error('Error deleting country:', error);
+        setError('Failed to delete country');
       }
     }
   };
@@ -155,6 +161,16 @@ const Countries: React.FC = () => {
           </DialogActions>
         </form>
       </Dialog>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+      >
+        <Alert onClose={() => setError(null)} severity="error">
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

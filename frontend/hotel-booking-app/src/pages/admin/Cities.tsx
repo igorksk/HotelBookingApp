@@ -15,10 +15,12 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  FormControl,
-  InputLabel,
+  Alert,
+  Snackbar,
   Select,
   MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import axios from 'axios';
@@ -27,12 +29,12 @@ interface City {
   id: number;
   name: string;
   countryId: number;
-  countryName: string;
 }
 
 interface Country {
   id: number;
   name: string;
+  code: string;
 }
 
 const Cities: React.FC = () => {
@@ -41,6 +43,7 @@ const Cities: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [editingCity, setEditingCity] = useState<City | null>(null);
   const [formData, setFormData] = useState({ name: '', countryId: '' });
+  const [error, setError] = useState<string | null>(null);
 
   const fetchCities = async () => {
     try {
@@ -48,6 +51,7 @@ const Cities: React.FC = () => {
       setCities(response.data);
     } catch (error) {
       console.error('Error fetching cities:', error);
+      setError('Failed to fetch cities');
     }
   };
 
@@ -57,6 +61,7 @@ const Cities: React.FC = () => {
       setCountries(response.data);
     } catch (error) {
       console.error('Error fetching countries:', error);
+      setError('Failed to fetch countries');
     }
   };
 
@@ -94,6 +99,7 @@ const Cities: React.FC = () => {
       fetchCities();
     } catch (error) {
       console.error('Error saving city:', error);
+      setError('Failed to save city');
     }
   };
 
@@ -104,8 +110,14 @@ const Cities: React.FC = () => {
         fetchCities();
       } catch (error) {
         console.error('Error deleting city:', error);
+        setError('Failed to delete city');
       }
     }
+  };
+
+  const getCountryName = (countryId: number) => {
+    const country = countries.find(c => c.id === countryId);
+    return country ? country.name : '';
   };
 
   return (
@@ -129,7 +141,7 @@ const Cities: React.FC = () => {
             {cities.map((city) => (
               <TableRow key={city.id}>
                 <TableCell>{city.name}</TableCell>
-                <TableCell>{city.countryName}</TableCell>
+                <TableCell>{getCountryName(city.countryId)}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => handleOpen(city)} color="primary">
                     <EditIcon />
@@ -163,7 +175,6 @@ const Cities: React.FC = () => {
               <InputLabel>Country</InputLabel>
               <Select
                 value={formData.countryId}
-                label="Country"
                 onChange={(e) => setFormData({ ...formData, countryId: e.target.value })}
                 required
               >
@@ -183,6 +194,16 @@ const Cities: React.FC = () => {
           </DialogActions>
         </form>
       </Dialog>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+      >
+        <Alert onClose={() => setError(null)} severity="error">
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -15,10 +15,12 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  FormControl,
-  InputLabel,
+  Alert,
+  Snackbar,
   Select,
   MenuItem,
+  FormControl,
+  InputLabel,
   Switch,
   FormControlLabel,
 } from '@mui/material';
@@ -27,17 +29,19 @@ import axios from 'axios';
 
 interface Room {
   id: number;
-  roomNumber: string;
+  number: string;
   type: string;
   pricePerNight: number;
-  isAvailable: boolean;
+  available: boolean;
   hotelId: number;
-  hotelName: string;
 }
 
 interface Hotel {
   id: number;
   name: string;
+  address: string;
+  rating: number;
+  cityId: number;
 }
 
 const Rooms: React.FC = () => {
@@ -46,12 +50,13 @@ const Rooms: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [formData, setFormData] = useState({
-    roomNumber: '',
+    number: '',
     type: '',
     pricePerNight: '',
-    isAvailable: true,
+    available: true,
     hotelId: '',
   });
+  const [error, setError] = useState<string | null>(null);
 
   const fetchRooms = async () => {
     try {
@@ -59,6 +64,7 @@ const Rooms: React.FC = () => {
       setRooms(response.data);
     } catch (error) {
       console.error('Error fetching rooms:', error);
+      setError('Failed to fetch rooms');
     }
   };
 
@@ -68,6 +74,7 @@ const Rooms: React.FC = () => {
       setHotels(response.data);
     } catch (error) {
       console.error('Error fetching hotels:', error);
+      setError('Failed to fetch hotels');
     }
   };
 
@@ -80,19 +87,19 @@ const Rooms: React.FC = () => {
     if (room) {
       setEditingRoom(room);
       setFormData({
-        roomNumber: room.roomNumber,
+        number: room.number,
         type: room.type,
         pricePerNight: room.pricePerNight.toString(),
-        isAvailable: room.isAvailable,
+        available: room.available,
         hotelId: room.hotelId.toString(),
       });
     } else {
       setEditingRoom(null);
       setFormData({
-        roomNumber: '',
+        number: '',
         type: '',
         pricePerNight: '',
-        isAvailable: true,
+        available: true,
         hotelId: '',
       });
     }
@@ -103,10 +110,10 @@ const Rooms: React.FC = () => {
     setOpen(false);
     setEditingRoom(null);
     setFormData({
-      roomNumber: '',
+      number: '',
       type: '',
       pricePerNight: '',
-      isAvailable: true,
+      available: true,
       hotelId: '',
     });
   };
@@ -114,19 +121,22 @@ const Rooms: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const submitData = {
+      const data = {
         ...formData,
         pricePerNight: parseFloat(formData.pricePerNight),
+        hotelId: parseInt(formData.hotelId),
       };
+
       if (editingRoom) {
-        await axios.put(`/api/rooms/${editingRoom.id}`, submitData);
+        await axios.put(`/api/rooms/${editingRoom.id}`, data);
       } else {
-        await axios.post('/api/rooms', submitData);
+        await axios.post('/api/rooms', data);
       }
       handleClose();
       fetchRooms();
     } catch (error) {
       console.error('Error saving room:', error);
+      setError('Failed to save room');
     }
   };
 
@@ -137,8 +147,14 @@ const Rooms: React.FC = () => {
         fetchRooms();
       } catch (error) {
         console.error('Error deleting room:', error);
+        setError('Failed to delete room');
       }
     }
+  };
+
+  const getHotelName = (hotelId: number) => {
+    const hotel = hotels.find(h => h.id === hotelId);
+    return hotel ? hotel.name : '';
   };
 
   return (
@@ -164,11 +180,11 @@ const Rooms: React.FC = () => {
           <TableBody>
             {rooms.map((room) => (
               <TableRow key={room.id}>
-                <TableCell>{room.roomNumber}</TableCell>
+                <TableCell>{room.number}</TableCell>
                 <TableCell>{room.type}</TableCell>
-                <TableCell>{room.pricePerNight}</TableCell>
-                <TableCell>{room.isAvailable ? 'Yes' : 'No'}</TableCell>
-                <TableCell>{room.hotelName}</TableCell>
+                <TableCell>${room.pricePerNight}</TableCell>
+                <TableCell>{room.available ? 'Yes' : 'No'}</TableCell>
+                <TableCell>{getHotelName(room.hotelId)}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => handleOpen(room)} color="primary">
                     <EditIcon />
@@ -194,8 +210,8 @@ const Rooms: React.FC = () => {
               margin="dense"
               label="Room Number"
               fullWidth
-              value={formData.roomNumber}
-              onChange={(e) => setFormData({ ...formData, roomNumber: e.target.value })}
+              value={formData.number}
+              onChange={(e) => setFormData({ ...formData, number: e.target.value })}
               required
             />
             <TextField
@@ -213,13 +229,14 @@ const Rooms: React.FC = () => {
               fullWidth
               value={formData.pricePerNight}
               onChange={(e) => setFormData({ ...formData, pricePerNight: e.target.value })}
+              inputProps={{ min: 0, step: 0.01 }}
               required
             />
             <FormControlLabel
               control={
                 <Switch
-                  checked={formData.isAvailable}
-                  onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
+                  checked={formData.available}
+                  onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
                 />
               }
               label="Available"
@@ -228,7 +245,6 @@ const Rooms: React.FC = () => {
               <InputLabel>Hotel</InputLabel>
               <Select
                 value={formData.hotelId}
-                label="Hotel"
                 onChange={(e) => setFormData({ ...formData, hotelId: e.target.value })}
                 required
               >
@@ -248,6 +264,16 @@ const Rooms: React.FC = () => {
           </DialogActions>
         </form>
       </Dialog>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+      >
+        <Alert onClose={() => setError(null)} severity="error">
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

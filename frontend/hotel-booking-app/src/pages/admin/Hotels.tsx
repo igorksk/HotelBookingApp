@@ -15,11 +15,12 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  FormControl,
-  InputLabel,
+  Alert,
+  Snackbar,
   Select,
   MenuItem,
-  Rating,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import axios from 'axios';
@@ -30,12 +31,12 @@ interface Hotel {
   address: string;
   rating: number;
   cityId: number;
-  cityName: string;
 }
 
 interface City {
   id: number;
   name: string;
+  countryId: number;
 }
 
 const Hotels: React.FC = () => {
@@ -46,9 +47,10 @@ const Hotels: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    rating: 0,
+    rating: '',
     cityId: '',
   });
+  const [error, setError] = useState<string | null>(null);
 
   const fetchHotels = async () => {
     try {
@@ -56,6 +58,7 @@ const Hotels: React.FC = () => {
       setHotels(response.data);
     } catch (error) {
       console.error('Error fetching hotels:', error);
+      setError('Failed to fetch hotels');
     }
   };
 
@@ -65,6 +68,7 @@ const Hotels: React.FC = () => {
       setCities(response.data);
     } catch (error) {
       console.error('Error fetching cities:', error);
+      setError('Failed to fetch cities');
     }
   };
 
@@ -79,7 +83,7 @@ const Hotels: React.FC = () => {
       setFormData({
         name: hotel.name,
         address: hotel.address,
-        rating: hotel.rating,
+        rating: hotel.rating.toString(),
         cityId: hotel.cityId.toString(),
       });
     } else {
@@ -87,7 +91,7 @@ const Hotels: React.FC = () => {
       setFormData({
         name: '',
         address: '',
-        rating: 0,
+        rating: '',
         cityId: '',
       });
     }
@@ -100,7 +104,7 @@ const Hotels: React.FC = () => {
     setFormData({
       name: '',
       address: '',
-      rating: 0,
+      rating: '',
       cityId: '',
     });
   };
@@ -108,15 +112,22 @@ const Hotels: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const data = {
+        ...formData,
+        rating: parseFloat(formData.rating),
+        cityId: parseInt(formData.cityId),
+      };
+
       if (editingHotel) {
-        await axios.put(`/api/hotels/${editingHotel.id}`, formData);
+        await axios.put(`/api/hotels/${editingHotel.id}`, data);
       } else {
-        await axios.post('/api/hotels', formData);
+        await axios.post('/api/hotels', data);
       }
       handleClose();
       fetchHotels();
     } catch (error) {
       console.error('Error saving hotel:', error);
+      setError('Failed to save hotel');
     }
   };
 
@@ -127,8 +138,14 @@ const Hotels: React.FC = () => {
         fetchHotels();
       } catch (error) {
         console.error('Error deleting hotel:', error);
+        setError('Failed to delete hotel');
       }
     }
+  };
+
+  const getCityName = (cityId: number) => {
+    const city = cities.find(c => c.id === cityId);
+    return city ? city.name : '';
   };
 
   return (
@@ -155,10 +172,8 @@ const Hotels: React.FC = () => {
               <TableRow key={hotel.id}>
                 <TableCell>{hotel.name}</TableCell>
                 <TableCell>{hotel.address}</TableCell>
-                <TableCell>
-                  <Rating value={hotel.rating} readOnly />
-                </TableCell>
-                <TableCell>{hotel.cityName}</TableCell>
+                <TableCell>{hotel.rating}</TableCell>
+                <TableCell>{getCityName(hotel.cityId)}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => handleOpen(hotel)} color="primary">
                     <EditIcon />
@@ -196,17 +211,20 @@ const Hotels: React.FC = () => {
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               required
             />
-            <Box sx={{ mt: 2, mb: 1 }}>
-              <Rating
-                value={formData.rating}
-                onChange={(_, value) => setFormData({ ...formData, rating: value || 0 })}
-              />
-            </Box>
+            <TextField
+              margin="dense"
+              label="Rating"
+              type="number"
+              fullWidth
+              value={formData.rating}
+              onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+              inputProps={{ min: 0, max: 5, step: 0.1 }}
+              required
+            />
             <FormControl fullWidth margin="dense">
               <InputLabel>City</InputLabel>
               <Select
                 value={formData.cityId}
-                label="City"
                 onChange={(e) => setFormData({ ...formData, cityId: e.target.value })}
                 required
               >
@@ -226,6 +244,16 @@ const Hotels: React.FC = () => {
           </DialogActions>
         </form>
       </Dialog>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+      >
+        <Alert onClose={() => setError(null)} severity="error">
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
