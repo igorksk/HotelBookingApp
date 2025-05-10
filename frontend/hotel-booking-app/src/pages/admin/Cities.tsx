@@ -23,19 +23,8 @@ import {
   InputLabel,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import api from '../../api/axios';
-
-interface City {
-  id: number;
-  name: string;
-  countryId: number;
-}
-
-interface Country {
-  id: number;
-  name: string;
-  code: string;
-}
+import { citiesApi, countriesApi } from '../../services/api';
+import { City, Country } from '../../types/api.types';
 
 const Cities: React.FC = () => {
   const [cities, setCities] = useState<City[]>([]);
@@ -47,8 +36,8 @@ const Cities: React.FC = () => {
 
   const fetchCities = async () => {
     try {
-      const response = await api.get('locations/cities');
-      setCities(response.data);
+      const data = await citiesApi.getAll();
+      setCities(data);
     } catch (error) {
       console.error('Error fetching cities:', error);
       setError('Failed to fetch cities');
@@ -57,8 +46,8 @@ const Cities: React.FC = () => {
 
   const fetchCountries = async () => {
     try {
-      const response = await api.get('locations/countries');
-      setCountries(response.data);
+      const data = await countriesApi.getAll();
+      setCountries(data);
     } catch (error) {
       console.error('Error fetching countries:', error);
       setError('Failed to fetch countries');
@@ -73,7 +62,7 @@ const Cities: React.FC = () => {
   const handleOpen = (city?: City) => {
     if (city) {
       setEditingCity(city);
-      setFormData({ name: city.name, countryId: city.countryId.toString() });
+      setFormData({ name: city.name || '', countryId: city.countryId.toString() });
     } else {
       setEditingCity(null);
       setFormData({ name: '', countryId: '' });
@@ -91,9 +80,22 @@ const Cities: React.FC = () => {
     e.preventDefault();
     try {
       if (editingCity) {
-        await api.put(`locations/cities/${editingCity.id}`, formData);
+        await citiesApi.update(editingCity.id, { 
+          ...editingCity, 
+          name: formData.name,
+          countryId: parseInt(formData.countryId)
+        });
       } else {
-        await api.post('locations/cities', formData);
+        const selectedCountry = countries.find(c => c.id === parseInt(formData.countryId));
+        if (!selectedCountry) {
+          throw new Error('Selected country not found');
+        }
+        await citiesApi.create({ 
+          name: formData.name,
+          countryId: parseInt(formData.countryId),
+          country: selectedCountry,
+          hotels: []
+        });
       }
       handleClose();
       fetchCities();
@@ -106,7 +108,7 @@ const Cities: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this city?')) {
       try {
-        await api.delete(`locations/cities/${id}`);
+        await citiesApi.delete(id);
         fetchCities();
       } catch (error) {
         console.error('Error deleting city:', error);

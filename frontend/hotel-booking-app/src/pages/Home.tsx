@@ -13,16 +13,17 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { locationsApi } from '../services/api';
+import { countriesApi, citiesApi } from '../services/api';
+import { Country, City } from '../types/api.types';
 
 const Home = () => {
   const navigate = useNavigate();
   const [checkIn, setCheckIn] = React.useState<Date | null>(null);
   const [checkOut, setCheckOut] = React.useState<Date | null>(null);
-  const [country, setCountry] = React.useState<string>('');
-  const [city, setCity] = React.useState<string>('');
-  const [countries, setCountries] = useState<string[]>([]);
-  const [cities, setCities] = useState<string[]>([]);
+  const [selectedCountry, setSelectedCountry] = React.useState<Country | null>(null);
+  const [selectedCity, setSelectedCity] = React.useState<City | null>(null);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [cities, setCities] = useState<City[]>([]);
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
 
@@ -30,7 +31,7 @@ const Home = () => {
     const fetchCountries = async () => {
       try {
         setLoadingCountries(true);
-        const data = await locationsApi.getCountries();
+        const data = await countriesApi.getAll();
         setCountries(data);
       } catch (error) {
         console.error('Error fetching countries:', error);
@@ -44,14 +45,14 @@ const Home = () => {
 
   useEffect(() => {
     const fetchCities = async () => {
-      if (!country) {
+      if (!selectedCountry) {
         setCities([]);
         return;
       }
 
       try {
         setLoadingCities(true);
-        const data = await locationsApi.getCities(country);
+        const data = await citiesApi.getAll(selectedCountry.id);
         setCities(data);
       } catch (error) {
         console.error('Error fetching cities:', error);
@@ -61,12 +62,12 @@ const Home = () => {
     };
 
     fetchCities();
-  }, [country]);
+  }, [selectedCountry]);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (country) params.append('country', country);
-    if (city) params.append('city', city);
+    if (selectedCountry) params.append('country', selectedCountry.name || '');
+    if (selectedCity) params.append('city', selectedCity.name || '');
     if (checkIn) params.append('checkIn', checkIn.toISOString());
     if (checkOut) params.append('checkOut', checkOut.toISOString());
     navigate(`/hotels?${params.toString()}`);
@@ -89,8 +90,12 @@ const Home = () => {
             <Autocomplete
               options={countries}
               loading={loadingCountries}
-              value={country}
-              onChange={(_, newValue) => setCountry(newValue || '')}
+              value={selectedCountry}
+              onChange={(_, newValue) => {
+                setSelectedCountry(newValue);
+                setSelectedCity(null);
+              }}
+              getOptionLabel={(option) => option.name || ''}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -104,9 +109,10 @@ const Home = () => {
             <Autocomplete
               options={cities}
               loading={loadingCities}
-              value={city}
-              onChange={(_, newValue) => setCity(newValue || '')}
-              disabled={!country}
+              value={selectedCity}
+              onChange={(_, newValue) => setSelectedCity(newValue)}
+              disabled={!selectedCountry}
+              getOptionLabel={(option) => option.name || ''}
               renderInput={(params) => (
                 <TextField
                   {...params}

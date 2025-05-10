@@ -19,13 +19,8 @@ import {
   Snackbar,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import api from '../../api/axios';
-
-interface Country {
-  id: number;
-  name: string;
-  code: string;
-}
+import { countriesApi } from '../../services/api';
+import { Country } from '../../types/api.types';
 
 const Countries: React.FC = () => {
   const [countries, setCountries] = useState<Country[]>([]);
@@ -36,8 +31,8 @@ const Countries: React.FC = () => {
 
   const fetchCountries = async () => {
     try {
-      const response = await api.get('locations/countries');
-      setCountries(response.data);
+      const data = await countriesApi.getAll();
+      setCountries(data);
     } catch (error) {
       console.error('Error fetching countries:', error);
       setError('Failed to fetch countries');
@@ -51,7 +46,7 @@ const Countries: React.FC = () => {
   const handleOpen = (country?: Country) => {
     if (country) {
       setEditingCountry(country);
-      setFormData({ name: country.name, code: country.code });
+      setFormData({ name: country.name || '', code: country.code || '' });
     } else {
       setEditingCountry(null);
       setFormData({ name: '', code: '' });
@@ -69,9 +64,9 @@ const Countries: React.FC = () => {
     e.preventDefault();
     try {
       if (editingCountry) {
-        await api.put(`locations/countries/${editingCountry.id}`, formData);
+        await countriesApi.update(editingCountry.id, { ...editingCountry, ...formData });
       } else {
-        await api.post('locations/countries', formData);
+        await countriesApi.create({ ...formData, cities: [] });
       }
       handleClose();
       fetchCountries();
@@ -84,7 +79,7 @@ const Countries: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this country?')) {
       try {
-        await api.delete(`locations/countries/${id}`);
+        await countriesApi.delete(id);
         fetchCountries();
       } catch (error) {
         console.error('Error deleting country:', error);

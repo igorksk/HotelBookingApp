@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Hotel, HotelDto, Room, RoomDto, Booking, BookingDto } from '../types/api.types';
+import { Hotel, HotelDto, Room, RoomDto, Booking, BookingDto, Country, City } from '../types/api.types';
 
 const API_BASE_URL = 'http://localhost:7263';
 
@@ -41,22 +41,63 @@ export const bookingsApi = {
   },
 };
 
-export const locationsApi = {
-  getCountries: async () => {
-    const response = await axios.get<string[]>(`${API_BASE_URL}/api/Locations/countries`);
+export const countriesApi = {
+  getAll: async () => {
+    const response = await axios.get<Country[]>(`${API_BASE_URL}/api/Countries`);
     return response.data;
   },
 
-  getCities: async (country?: string) => {
-    const response = await axios.get<string[]>(`${API_BASE_URL}/api/Locations/cities`, {
-      params: { country }
+  getById: async (id: number) => {
+    const response = await axios.get<Country>(`${API_BASE_URL}/api/Countries/${id}`);
+    return response.data;
+  },
+
+  create: async (country: Omit<Country, 'id'>) => {
+    const response = await axios.post<Country>(`${API_BASE_URL}/api/Countries`, country);
+    return response.data;
+  },
+
+  update: async (id: number, country: Country) => {
+    const response = await axios.put(`${API_BASE_URL}/api/Countries/${id}`, country);
+    return response.data;
+  },
+
+  delete: async (id: number) => {
+    await axios.delete(`${API_BASE_URL}/api/Countries/${id}`);
+  }
+};
+
+export const citiesApi = {
+  getAll: async (countryId?: number) => {
+    const response = await axios.get<City[]>(`${API_BASE_URL}/api/Cities`, {
+      params: { countryId }
     });
     return response.data;
+  },
+
+  getById: async (id: number) => {
+    const response = await axios.get<City>(`${API_BASE_URL}/api/Cities/${id}`);
+    return response.data;
+  },
+
+  create: async (city: Omit<City, 'id'>) => {
+    const response = await axios.post<City>(`${API_BASE_URL}/api/Cities`, city);
+    return response.data;
+  },
+
+  update: async (id: number, city: City) => {
+    const response = await axios.put(`${API_BASE_URL}/api/Cities/${id}`, city);
+    return response.data;
+  },
+
+  delete: async (id: number) => {
+    await axios.delete(`${API_BASE_URL}/api/Cities/${id}`);
   }
 };
 
 export default {
   hotels: hotelsApi,
   bookings: bookingsApi,
-  locations: locationsApi,
+  countries: countriesApi,
+  cities: citiesApi,
 }; 
