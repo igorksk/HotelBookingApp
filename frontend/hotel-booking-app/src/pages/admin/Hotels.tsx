@@ -23,8 +23,8 @@ import {
   InputLabel,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import api from '../../api/axios';
 import { HotelDto, City } from '../../types/api.types';
+import { hotelsApi, citiesApi } from '../../services/api';
 
 const Hotels: React.FC = () => {
   const [hotels, setHotels] = useState<HotelDto[]>([]);
@@ -41,8 +41,8 @@ const Hotels: React.FC = () => {
 
   const fetchHotels = async () => {
     try {
-      const response = await api.get<HotelDto[]>('/hotels');
-      setHotels(response.data);
+      const data = await hotelsApi.getAll();
+      setHotels(data);
     } catch (error) {
       console.error('Error fetching hotels:', error);
       setError('Failed to fetch hotels');
@@ -51,8 +51,8 @@ const Hotels: React.FC = () => {
 
   const fetchCities = async () => {
     try {
-      const response = await api.get<City[]>('/cities');
-      setCities(response.data);
+      const data = await citiesApi.getAll();
+      setCities(data);
     } catch (error) {
       console.error('Error fetching cities:', error);
       setError('Failed to fetch cities');
@@ -115,9 +115,9 @@ const Hotels: React.FC = () => {
           };
 
       if (editingHotel) {
-        await api.put(`/hotels/${editingHotel.id}`, data);
+        await hotelsApi.update(editingHotel.id, data);
       } else {
-        await api.post('/hotels', data);
+        await hotelsApi.create(data);
       }
       handleClose();
       fetchHotels();
@@ -130,7 +130,7 @@ const Hotels: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this hotel?')) {
       try {
-        await api.delete(`/hotels/${id}`);
+        await hotelsApi.delete(id);
         fetchHotels();
       } catch (error) {
         console.error('Error deleting hotel:', error);
