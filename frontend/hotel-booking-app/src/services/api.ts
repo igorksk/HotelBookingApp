@@ -8,7 +8,7 @@ const api = axios.create({
   },
 });
 
-// Тип для передачи данных о комнате на сервер
+// Type for sending room data to the server
 export type RoomPayload = {
   id?: number;
   roomNumber: string;

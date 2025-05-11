@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import theme from './theme';
@@ -25,7 +24,7 @@ const App = () => {
           <Route path="/booking/:hotelId/:roomId" element={<Booking />} />
           <Route path="/my-bookings" element={<MyBookings />} />
           
-          {/* Административные маршруты */}
+          {/* Admin routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="countries" element={<Countries />} />
             <Route path="cities" element={<Cities />} />
