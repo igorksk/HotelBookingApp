@@ -13,6 +13,7 @@ export interface HotelDto {
   name: string | null;
   address: string | null;
   rating: number;
+  cityId: number;
   cityName: string | null;
   countryName: string | null;
   countryCode: string | null;

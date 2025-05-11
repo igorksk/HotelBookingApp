@@ -56,6 +56,7 @@ public class HotelsController(HotelBookingContext context, ILogger<HotelsControl
                 Name = h.Name,
                 Address = h.Address,
                 Rating = h.Rating,
+                CityId = h.CityId,
                 CityName = h.City?.Name ?? string.Empty,
                 CountryName = h.City?.Country?.Name ?? string.Empty,
                 CountryCode = h.City?.Country?.Code ?? string.Empty,
@@ -81,41 +82,73 @@ public class HotelsController(HotelBookingContext context, ILogger<HotelsControl
     [HttpGet("{id}")]
     public async Task<ActionResult<HotelDto>> GetHotel(int id)
     {
-        var hotel = await _context.Hotels
-            .Include(h => h.City)
-                .ThenInclude(c => c.Country)
-            .Include(h => h.Rooms)
-            .Select(h => new HotelDto
+        try
+        {
+            var hotel = await _context.Hotels
+                .Include(h => h.City)
+                    .ThenInclude(c => c.Country)
+                .Include(h => h.Rooms)
+                .FirstOrDefaultAsync(h => h.Id == id);
+
+            if (hotel == null)
             {
-                Id = h.Id,
-                Name = h.Name,
-                Address = h.Address,
-                Rating = h.Rating,
-                CityName = h.City.Name,
-                CountryName = h.City.Country.Name,
-                CountryCode = h.City.Country.Code,
-                Rooms = h.Rooms.Select(r => new RoomDto
+                return NotFound();
+            }
+
+            var hotelDto = new HotelDto
+            {
+                Id = hotel.Id,
+                Name = hotel.Name ?? string.Empty,
+                Address = hotel.Address ?? string.Empty,
+                Rating = hotel.Rating,
+                CityName = hotel.City?.Name ?? string.Empty,
+                CountryName = hotel.City?.Country?.Name ?? string.Empty,
+                CountryCode = hotel.City?.Country?.Code ?? string.Empty,
+                CityId = hotel.CityId,
+                Rooms = hotel.Rooms?.Select(r => new RoomDto
                 {
                     Id = r.Id,
                     RoomNumber = r.RoomNumber,
                     Type = r.Type,
                     PricePerNight = r.PricePerNight,
                     IsAvailable = r.IsAvailable
-                }).ToList()
-            })
-            .FirstOrDefaultAsync(h => h.Id == id);
+                }).ToList() ?? new List<RoomDto>()
+            };
 
-        if (hotel == null)
-        {
-            return NotFound();
+            return Ok(hotelDto);
         }
-
-        return hotel;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while getting hotel with id {HotelId}", id);
+            throw;
+        }
     }
 
     [HttpPost]
     public async Task<ActionResult<Hotel>> PostHotel(Hotel hotel)
     {
+        if (hotel == null)
+        {
+            return BadRequest("Hotel data is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(hotel.Name))
+        {
+            return BadRequest("Hotel name is required");
+        }
+
+        if (hotel.CityId <= 0)
+        {
+            return BadRequest("Valid CityId is required");
+        }
+
+        // Проверяем существование города
+        var cityExists = await _context.Cities.AnyAsync(c => c.Id == hotel.CityId);
+        if (!cityExists)
+        {
+            return BadRequest("Specified city does not exist");
+        }
+
         _context.Hotels.Add(hotel);
         await _context.SaveChangesAsync();
 
@@ -127,10 +160,38 @@ public class HotelsController(HotelBookingContext context, ILogger<HotelsControl
     {
         if (id != hotel.Id)
         {
-            return BadRequest();
+            return BadRequest("Id mismatch");
         }
 
-        _context.Entry(hotel).State = EntityState.Modified;
+        if (hotel == null)
+        {
+            return BadRequest("Hotel data is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(hotel.Name))
+        {
+            return BadRequest("Hotel name is required");
+        }
+
+        if (hotel.CityId <= 0)
+        {
+            return BadRequest("Valid CityId is required");
+        }
+
+        // Проверяем существование города
+        var cityExists = await _context.Cities.AnyAsync(c => c.Id == hotel.CityId);
+        if (!cityExists)
+        {
+            return BadRequest("Specified city does not exist");
+        }
+
+        var existingHotel = await _context.Hotels.FindAsync(id);
+        if (existingHotel == null)
+        {
+            return NotFound();
+        }
+
+        _context.Entry(existingHotel).CurrentValues.SetValues(hotel);
 
         try
         {

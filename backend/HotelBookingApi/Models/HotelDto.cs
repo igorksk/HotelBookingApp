@@ -6,6 +6,7 @@ public class HotelDto
     public string Name { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public int Rating { get; set; }
+    public int CityId { get; set; }
 
     // City information
     public string CityName { get; set; } = string.Empty;

@@ -81,10 +81,10 @@ const Hotels: React.FC = () => {
     if (hotel) {
       setEditingHotel(hotel);
       setFormData({
-        name: hotel.name,
-        address: hotel.address,
-        rating: hotel.rating.toString(),
-        cityId: hotel.cityId.toString(),
+        name: hotel.name || '',
+        address: hotel.address || '',
+        rating: hotel.rating?.toString() || '0',
+        cityId: hotel.cityId?.toString() || '',
       });
     } else {
       setEditingHotel(null);
