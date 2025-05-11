@@ -3,6 +3,16 @@ import { Hotel, HotelDto, Room, RoomDto, Booking, BookingDto, Country, City } fr
 
 const API_BASE_URL = 'http://localhost:7263';
 
+// Тип для передачи данных о комнате на сервер
+export type RoomPayload = {
+  id?: number;
+  roomNumber: string;
+  type: string;
+  pricePerNight: number;
+  isAvailable: boolean;
+  hotelId: number;
+};
+
 export const hotelsApi = {
   getAll: async (params?: { country?: string; city?: string; checkIn?: string; checkOut?: string }) => {
     const response = await axios.get<HotelDto[]>(`${API_BASE_URL}/api/Hotels`, { params });
@@ -33,12 +43,12 @@ export const roomsApi = {
     return response.data;
   },
 
-  create: async (room: Omit<Room, 'id'>) => {
+  create: async (room: RoomPayload) => {
     const response = await axios.post<Room>(`${API_BASE_URL}/api/Rooms`, room);
     return response.data;
   },
 
-  update: async (id: number, room: Room) => {
+  update: async (id: number, room: RoomPayload) => {
     const response = await axios.put(`${API_BASE_URL}/api/Rooms/${id}`, room);
     return response.data;
   },
