@@ -1,4 +1,4 @@
-namespace HotelBookingApi.Models;
+namespace HotelBookingApi.DTOs;
 
 public class UpdateRoomDto
 {

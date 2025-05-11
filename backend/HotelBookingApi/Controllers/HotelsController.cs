@@ -1,4 +1,5 @@
 using HotelBookingApi.Data;
+using HotelBookingApi.DTOs;
 using HotelBookingApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

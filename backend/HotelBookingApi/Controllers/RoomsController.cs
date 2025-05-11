@@ -1,5 +1,6 @@
 using HotelBookingApi.Data;
 using HotelBookingApi.Models;
+using HotelBookingApi.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,9 +8,10 @@ namespace HotelBookingApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class RoomsController(HotelBookingContext context) : ControllerBase
+public class RoomsController(HotelBookingContext context, ILogger<RoomsController> logger) : ControllerBase
 {
     private readonly HotelBookingContext _context = context;
+    private readonly ILogger<RoomsController> _logger = logger;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Room>>> GetRooms()
