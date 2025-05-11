@@ -39,13 +39,23 @@ public class RoomsController(HotelBookingContext context) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Room>> PostRoom(Room room)
+    public async Task<ActionResult<Room>> PostRoom(CreateRoomDto dto)
     {
-        var hotel = await _context.Hotels.FindAsync(room.HotelId);
+        var hotel = await _context.Hotels.FindAsync(dto.HotelId);
         if (hotel == null)
         {
             return BadRequest("Hotel not found");
         }
+
+        var room = new Room
+        {
+            RoomNumber = dto.RoomNumber,
+            Type = dto.Type,
+            PricePerNight = dto.PricePerNight,
+            IsAvailable = dto.IsAvailable,
+            HotelId = dto.HotelId,
+            Hotel = hotel
+        };
 
         _context.Rooms.Add(room);
         await _context.SaveChangesAsync();
@@ -54,14 +64,31 @@ public class RoomsController(HotelBookingContext context) : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutRoom(int id, Room room)
+    public async Task<IActionResult> PutRoom(int id, UpdateRoomDto dto)
     {
-        if (id != room.Id)
+        if (id != dto.Id)
         {
-            return BadRequest();
+            return BadRequest("Id mismatch");
         }
 
-        _context.Entry(room).State = EntityState.Modified;
+        var hotel = await _context.Hotels.FindAsync(dto.HotelId);
+        if (hotel == null)
+        {
+            return BadRequest("Hotel not found");
+        }
+
+        var existingRoom = await _context.Rooms.FindAsync(id);
+        if (existingRoom == null)
+        {
+            return NotFound();
+        }
+
+        existingRoom.RoomNumber = dto.RoomNumber;
+        existingRoom.Type = dto.Type;
+        existingRoom.PricePerNight = dto.PricePerNight;
+        existingRoom.IsAvailable = dto.IsAvailable;
+        existingRoom.HotelId = dto.HotelId;
+        existingRoom.Hotel = hotel;
 
         try
         {

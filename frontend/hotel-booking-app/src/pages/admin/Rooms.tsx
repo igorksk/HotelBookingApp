@@ -110,18 +110,25 @@ const Rooms: React.FC = () => {
         throw new Error('Selected hotel not found');
       }
 
-      const roomData: Omit<Room, 'id'> = {
-        roomNumber: formData.roomNumber,
-        type: formData.type,
-        pricePerNight: parseFloat(formData.pricePerNight),
-        isAvailable: formData.isAvailable,
-        hotelId: parseInt(formData.hotelId),
-        hotel: selectedHotel as unknown as Hotel, // Временное решение, так как HotelDto не полностью совместим с Hotel
-        bookings: null
-      };
+      const roomData = editingRoom
+        ? {
+            id: editingRoom.id,
+            roomNumber: formData.roomNumber,
+            type: formData.type,
+            pricePerNight: parseFloat(formData.pricePerNight),
+            isAvailable: formData.isAvailable,
+            hotelId: parseInt(formData.hotelId),
+          }
+        : {
+            roomNumber: formData.roomNumber,
+            type: formData.type,
+            pricePerNight: parseFloat(formData.pricePerNight),
+            isAvailable: formData.isAvailable,
+            hotelId: parseInt(formData.hotelId),
+          };
 
       if (editingRoom) {
-        await roomsApi.update(editingRoom.id, { ...editingRoom, ...roomData });
+        await roomsApi.update(editingRoom.id, roomData);
       } else {
         await roomsApi.create(roomData);
       }
