@@ -22,7 +22,7 @@ public class HotelsController(HotelBookingContext context, ILogger<HotelsControl
     {
         try
         {
-            _logger.LogInformation("Getting filtered hotels");
+            _logger.LogInformation("Getting hotel list (filters: country={Country}, city={City})", country, city);
 
             var hotelsQuery = _context.Hotels
                 .Include(h => h.City)
@@ -75,7 +75,7 @@ public class HotelsController(HotelBookingContext context, ILogger<HotelsControl
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while getting hotels");
+            _logger.LogError(ex, "Error while getting hotel list");
             throw;
         }
     }
@@ -85,6 +85,8 @@ public class HotelsController(HotelBookingContext context, ILogger<HotelsControl
     {
         try
         {
+            _logger.LogInformation("Getting hotel by id={HotelId}", id);
+
             var hotel = await _context.Hotels
                 .Include(h => h.City)
                     .ThenInclude(c => c.Country)
@@ -120,7 +122,7 @@ public class HotelsController(HotelBookingContext context, ILogger<HotelsControl
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while getting hotel with id {HotelId}", id);
+            _logger.LogError(ex, "Error while getting hotel by id={HotelId}", id);
             throw;
         }
     }
@@ -128,6 +130,8 @@ public class HotelsController(HotelBookingContext context, ILogger<HotelsControl
     [HttpPost]
     public async Task<ActionResult<Hotel>> PostHotel(CreateHotelDto createHotelDto)
     {
+        _logger.LogInformation("Creating new hotel: {Name}", createHotelDto?.Name);
+
         if (createHotelDto == null)
         {
             return BadRequest("Hotel data is required");
@@ -168,6 +172,8 @@ public class HotelsController(HotelBookingContext context, ILogger<HotelsControl
     [HttpPut("{id}")]
     public async Task<IActionResult> PutHotel(int id, UpdateHotelDto updateHotelDto)
     {
+        _logger.LogInformation("Updating hotel id={HotelId}", id);
+
         if (id != updateHotelDto.Id)
         {
             return BadRequest("Id mismatch");
@@ -226,6 +232,8 @@ public class HotelsController(HotelBookingContext context, ILogger<HotelsControl
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteHotel(int id)
     {
+        _logger.LogInformation("Deleting hotel id={HotelId}", id);
+
         var hotel = await _context.Hotels.FindAsync(id);
         if (hotel == null)
         {

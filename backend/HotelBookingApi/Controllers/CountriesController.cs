@@ -15,9 +15,9 @@ public class CountriesController(HotelBookingContext context, ILogger<CountriesC
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Country>>> GetCountries()
     {
+        _logger.LogInformation("Getting all countries");
         try
         {
-            _logger.LogInformation("Getting all available countries");
             var countries = await _context.Countries
                 .OrderBy(c => c.Name)
                 .ToListAsync();
@@ -34,6 +34,7 @@ public class CountriesController(HotelBookingContext context, ILogger<CountriesC
     [HttpGet("{id}")]
     public async Task<ActionResult<Country>> GetCountry(int id)
     {
+        _logger.LogInformation("Getting country by id={CountryId}", id);
         var country = await _context.Countries.FindAsync(id);
         if (country == null)
         {
@@ -46,6 +47,7 @@ public class CountriesController(HotelBookingContext context, ILogger<CountriesC
     [HttpPost]
     public async Task<ActionResult<Country>> PostCountry(Country country)
     {
+        _logger.LogInformation("Creating new country: {Name}", country?.Name);
         _context.Countries.Add(country);
         await _context.SaveChangesAsync();
 
@@ -55,6 +57,7 @@ public class CountriesController(HotelBookingContext context, ILogger<CountriesC
     [HttpPut("{id}")]
     public async Task<IActionResult> PutCountry(int id, Country country)
     {
+        _logger.LogInformation("Updating country id={CountryId}", id);
         if (id != country.Id)
         {
             return BadRequest();
@@ -81,6 +84,7 @@ public class CountriesController(HotelBookingContext context, ILogger<CountriesC
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCountry(int id)
     {
+        _logger.LogInformation("Deleting country id={CountryId}", id);
         var country = await _context.Countries.FindAsync(id);
         if (country == null)
         {

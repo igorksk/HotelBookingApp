@@ -16,6 +16,7 @@ public class BookingsController(HotelBookingContext context, ILogger<BookingsCon
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookings()
     {
+        _logger.LogInformation("Getting all bookings");
         var bookings = await _context.Bookings
             .Include(b => b.Room)
                 .ThenInclude(r => r.Hotel)
@@ -48,6 +49,7 @@ public class BookingsController(HotelBookingContext context, ILogger<BookingsCon
     [HttpGet("{id}")]
     public async Task<ActionResult<BookingDto>> GetBooking(int id)
     {
+        _logger.LogInformation("Getting booking by id={BookingId}", id);
         var booking = await _context.Bookings
             .Include(b => b.Room)
                 .ThenInclude(r => r.Hotel)
@@ -84,6 +86,7 @@ public class BookingsController(HotelBookingContext context, ILogger<BookingsCon
     [HttpPost]
     public async Task<ActionResult<BookingDto>> PostBooking(CreateBookingDto createBookingDto)
     {
+        _logger.LogInformation("Creating new booking for guest: {GuestName}", createBookingDto?.GuestName);
         var room = await _context.Rooms
             .Include(r => r.Hotel)
                 .ThenInclude(h => h.City)
@@ -155,6 +158,7 @@ public class BookingsController(HotelBookingContext context, ILogger<BookingsCon
     [HttpPut("{id}")]
     public async Task<IActionResult> PutBooking(int id, UpdateBookingDto updateBookingDto)
     {
+        _logger.LogInformation("Updating booking id={BookingId}", id);
         var booking = await _context.Bookings
             .Include(b => b.Room)
             .FirstOrDefaultAsync(b => b.Id == id);
@@ -208,6 +212,7 @@ public class BookingsController(HotelBookingContext context, ILogger<BookingsCon
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteBooking(int id)
     {
+        _logger.LogInformation("Deleting booking id={BookingId}", id);
         var booking = await _context.Bookings.FindAsync(id);
         if (booking == null)
         {

@@ -16,6 +16,7 @@ public class RoomsController(HotelBookingContext context, ILogger<RoomsControlle
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Room>>> GetRooms()
     {
+        _logger.LogInformation("Getting all rooms");
         return await _context.Rooms
             .Include(r => r.Hotel)
                 .ThenInclude(h => h.City)
@@ -26,6 +27,7 @@ public class RoomsController(HotelBookingContext context, ILogger<RoomsControlle
     [HttpGet("{id}")]
     public async Task<ActionResult<Room>> GetRoom(int id)
     {
+        _logger.LogInformation("Getting room by id={RoomId}", id);
         var room = await _context.Rooms
             .Include(r => r.Hotel)
                 .ThenInclude(h => h.City)
@@ -43,6 +45,7 @@ public class RoomsController(HotelBookingContext context, ILogger<RoomsControlle
     [HttpPost]
     public async Task<ActionResult<Room>> PostRoom(CreateRoomDto dto)
     {
+        _logger.LogInformation("Creating new room: {RoomNumber}", dto?.RoomNumber);
         var hotel = await _context.Hotels.FindAsync(dto.HotelId);
         if (hotel == null)
         {
@@ -68,6 +71,7 @@ public class RoomsController(HotelBookingContext context, ILogger<RoomsControlle
     [HttpPut("{id}")]
     public async Task<IActionResult> PutRoom(int id, UpdateRoomDto dto)
     {
+        _logger.LogInformation("Updating room id={RoomId}", id);
         if (id != dto.Id)
         {
             return BadRequest("Id mismatch");
@@ -111,6 +115,7 @@ public class RoomsController(HotelBookingContext context, ILogger<RoomsControlle
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteRoom(int id)
     {
+        _logger.LogInformation("Deleting room id={RoomId}", id);
         var room = await _context.Rooms.FindAsync(id);
         if (room == null)
         {

@@ -15,6 +15,7 @@ public class CitiesController(HotelBookingContext context, ILogger<CitiesControl
     [HttpGet]
     public async Task<ActionResult<IEnumerable<City>>> GetCities([FromQuery] int? countryId)
     {
+        _logger.LogInformation("Getting city list (filter by country: {CountryId})", countryId);
         try
         {
             _logger.LogInformation("Getting cities for country ID: {CountryId}", countryId);
@@ -43,6 +44,7 @@ public class CitiesController(HotelBookingContext context, ILogger<CitiesControl
     [HttpGet("{id}")]
     public async Task<ActionResult<City>> GetCity(int id)
     {
+        _logger.LogInformation("Getting city by id={CityId}", id);
         var city = await _context.Cities
             .Include(c => c.Country)
             .FirstOrDefaultAsync(c => c.Id == id);
@@ -58,6 +60,7 @@ public class CitiesController(HotelBookingContext context, ILogger<CitiesControl
     [HttpPost]
     public async Task<ActionResult<City>> PostCity(City city)
     {
+        _logger.LogInformation("Creating new city: {Name}", city?.Name);
         _context.Cities.Add(city);
         await _context.SaveChangesAsync();
 
@@ -67,6 +70,7 @@ public class CitiesController(HotelBookingContext context, ILogger<CitiesControl
     [HttpPut("{id}")]
     public async Task<IActionResult> PutCity(int id, City city)
     {
+        _logger.LogInformation("Updating city id={CityId}", id);
         if (id != city.Id)
         {
             return BadRequest();
@@ -93,6 +97,7 @@ public class CitiesController(HotelBookingContext context, ILogger<CitiesControl
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCity(int id)
     {
+        _logger.LogInformation("Deleting city id={CityId}", id);
         var city = await _context.Cities.FindAsync(id);
         if (city == null)
         {
