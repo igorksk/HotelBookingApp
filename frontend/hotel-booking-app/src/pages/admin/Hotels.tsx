@@ -24,26 +24,13 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import api from '../../api/axios';
-
-interface Hotel {
-  id: number;
-  name: string;
-  address: string;
-  rating: number;
-  cityId: number;
-}
-
-interface City {
-  id: number;
-  name: string;
-  countryId: number;
-}
+import { Hotel, HotelDto, City } from '../../types/api.types';
 
 const Hotels: React.FC = () => {
-  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [hotels, setHotels] = useState<HotelDto[]>([]);
   const [cities, setCities] = useState<City[]>([]);
   const [open, setOpen] = useState(false);
-  const [editingHotel, setEditingHotel] = useState<Hotel | null>(null);
+  const [editingHotel, setEditingHotel] = useState<HotelDto | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -54,7 +41,7 @@ const Hotels: React.FC = () => {
 
   const fetchHotels = async () => {
     try {
-      const response = await api.get('/hotels');
+      const response = await api.get<HotelDto[]>('/hotels');
       setHotels(response.data);
     } catch (error) {
       console.error('Error fetching hotels:', error);
@@ -64,7 +51,7 @@ const Hotels: React.FC = () => {
 
   const fetchCities = async () => {
     try {
-      const response = await api.get('/cities');
+      const response = await api.get<City[]>('/cities');
       setCities(response.data);
     } catch (error) {
       console.error('Error fetching cities:', error);
@@ -77,14 +64,14 @@ const Hotels: React.FC = () => {
     fetchCities();
   }, []);
 
-  const handleOpen = (hotel?: Hotel) => {
+  const handleOpen = (hotel?: HotelDto) => {
     if (hotel) {
       setEditingHotel(hotel);
       setFormData({
         name: hotel.name || '',
         address: hotel.address || '',
-        rating: hotel.rating?.toString() || '0',
-        cityId: hotel.cityId?.toString() || '',
+        rating: hotel.rating.toString(),
+        cityId: hotel.cityId.toString(),
       });
     } else {
       setEditingHotel(null);
@@ -112,11 +99,20 @@ const Hotels: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const data = {
-        ...formData,
-        rating: parseFloat(formData.rating),
-        cityId: parseInt(formData.cityId),
-      };
+      const data = editingHotel
+        ? {
+            id: editingHotel.id,
+            name: formData.name,
+            address: formData.address,
+            rating: parseFloat(formData.rating),
+            cityId: parseInt(formData.cityId),
+          }
+        : {
+            name: formData.name,
+            address: formData.address,
+            rating: parseFloat(formData.rating),
+            cityId: parseInt(formData.cityId),
+          };
 
       if (editingHotel) {
         await api.put(`/hotels/${editingHotel.id}`, data);
@@ -145,7 +141,7 @@ const Hotels: React.FC = () => {
 
   const getCityName = (cityId: number) => {
     const city = cities.find(c => c.id === cityId);
-    return city ? city.name : '';
+    return city?.name || '';
   };
 
   return (
@@ -173,7 +169,7 @@ const Hotels: React.FC = () => {
                 <TableCell>{hotel.name}</TableCell>
                 <TableCell>{hotel.address}</TableCell>
                 <TableCell>{hotel.rating}</TableCell>
-                <TableCell>{getCityName(hotel.cityId)}</TableCell>
+                <TableCell>{hotel.cityName}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => handleOpen(hotel)} color="primary">
                     <EditIcon />
