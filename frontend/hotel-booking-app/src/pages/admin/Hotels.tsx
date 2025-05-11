@@ -24,7 +24,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import api from '../../api/axios';
-import { Hotel, HotelDto, City } from '../../types/api.types';
+import { HotelDto, City } from '../../types/api.types';
 
 const Hotels: React.FC = () => {
   const [hotels, setHotels] = useState<HotelDto[]>([]);

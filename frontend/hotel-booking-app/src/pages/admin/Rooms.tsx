@@ -26,7 +26,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { roomsApi, hotelsApi } from '../../services/api';
-import { Room, Hotel, RoomDto, HotelDto } from '../../types/api.types';
+import { Room, HotelDto } from '../../types/api.types';
 
 const Rooms: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);

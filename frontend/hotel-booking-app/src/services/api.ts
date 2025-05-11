@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Hotel, HotelDto, Room, RoomDto, Booking, BookingDto, Country, City } from '../types/api.types';
+import { HotelDto, Room, RoomDto, Booking, BookingDto, Country, City } from '../types/api.types';
 
 const API_BASE_URL = 'http://localhost:7263';
 
