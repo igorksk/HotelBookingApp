@@ -48,10 +48,10 @@ public class CountriesController(HotelBookingContext context, ILogger<CountriesC
     public async Task<ActionResult<Country>> PostCountry(Country country)
     {
         _logger.LogInformation("Creating new country: {Name}", country?.Name);
-        _context.Countries.Add(country);
+        _context.Countries.Add(country!);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetCountry), new { id = country.Id }, country);
+        return CreatedAtAction(nameof(GetCountry), new { id = country!.Id }, country);
     }
 
     [HttpPut("{id}")]

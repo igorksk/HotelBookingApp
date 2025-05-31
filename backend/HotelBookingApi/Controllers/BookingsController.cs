@@ -3,47 +3,26 @@ using HotelBookingApi.Models;
 using HotelBookingApi.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using HotelBookingApi.Repository.Interfaces;
 
 namespace HotelBookingApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class BookingsController(HotelBookingContext context, ILogger<BookingsController> logger) : ControllerBase
+public class BookingsController(HotelBookingContext context, IBookingRepository bookingRepository, ILogger<BookingsController> logger) : ControllerBase
 {
+    // TO DO: remove context, use repository
     private readonly HotelBookingContext _context = context;
+    private readonly IBookingRepository _bookingRepository = bookingRepository;
     private readonly ILogger<BookingsController> _logger = logger;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookings()
     {
         _logger.LogInformation("Getting all bookings");
-        var bookings = await _context.Bookings
-            .Include(b => b.Room)
-                .ThenInclude(r => r.Hotel)
-                    .ThenInclude(h => h.City)
-                        .ThenInclude(c => c.Country)
-            .OrderByDescending(b => b.CheckInDate)
-            .Select(b => new BookingDto
-            {
-                Id = b.Id,
-                GuestName = b.GuestName,
-                GuestEmail = b.GuestEmail,
-                CheckInDate = b.CheckInDate,
-                CheckOutDate = b.CheckOutDate,
-                TotalPrice = b.TotalPrice,
-                Status = b.Status,
-                RoomNumber = b.Room.RoomNumber,
-                RoomType = b.Room.Type,
-                PricePerNight = b.Room.PricePerNight,
-                HotelName = b.Room.Hotel.Name,
-                HotelAddress = b.Room.Hotel.Address,
-                HotelCity = b.Room.Hotel.City.Name,
-                HotelCountry = b.Room.Hotel.City.Country.Name,
-                CountryCode = b.Room.Hotel.City.Country.Code
-            })
-            .ToListAsync();
+        var bookings = await _bookingRepository.GetBookings();
 
-        return bookings;
+        return bookings.ToList();
     }
 
     [HttpGet("{id}")]
@@ -91,7 +70,7 @@ public class BookingsController(HotelBookingContext context, ILogger<BookingsCon
             .Include(r => r.Hotel)
                 .ThenInclude(h => h.City)
                     .ThenInclude(c => c.Country)
-            .FirstOrDefaultAsync(r => r.Id == createBookingDto.RoomId);
+            .FirstOrDefaultAsync(r => r.Id == createBookingDto!.RoomId);
 
         if (room == null)
         {
@@ -105,7 +84,7 @@ public class BookingsController(HotelBookingContext context, ILogger<BookingsCon
 
         // Check if the room is already booked for the given dates
         var existingBooking = await _context.Bookings
-            .AnyAsync(b => b.RoomId == createBookingDto.RoomId &&
+            .AnyAsync(b => b.RoomId == createBookingDto!.RoomId &&
                           ((createBookingDto.CheckInDate >= b.CheckInDate && createBookingDto.CheckInDate < b.CheckOutDate) ||
                            (createBookingDto.CheckOutDate > b.CheckInDate && createBookingDto.CheckOutDate <= b.CheckOutDate) ||
                            (createBookingDto.CheckInDate <= b.CheckInDate && createBookingDto.CheckOutDate >= b.CheckOutDate)));
@@ -117,7 +96,7 @@ public class BookingsController(HotelBookingContext context, ILogger<BookingsCon
 
         var booking = new Booking
         {
-            GuestName = createBookingDto.GuestName,
+            GuestName = createBookingDto!.GuestName,
             GuestEmail = createBookingDto.GuestEmail,
             CheckInDate = createBookingDto.CheckInDate,
             CheckOutDate = createBookingDto.CheckOutDate,

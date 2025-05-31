@@ -46,7 +46,7 @@ public class RoomsController(HotelBookingContext context, ILogger<RoomsControlle
     public async Task<ActionResult<Room>> PostRoom(CreateRoomDto dto)
     {
         _logger.LogInformation("Creating new room: {RoomNumber}", dto?.RoomNumber);
-        var hotel = await _context.Hotels.FindAsync(dto.HotelId);
+        var hotel = await _context.Hotels.FindAsync(dto!.HotelId);
         if (hotel == null)
         {
             return BadRequest("Hotel not found");

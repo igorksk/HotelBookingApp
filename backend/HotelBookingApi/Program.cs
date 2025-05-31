@@ -1,4 +1,6 @@
 using HotelBookingApi.Data;
+using HotelBookingApi.Repository;
+using HotelBookingApi.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -14,6 +16,8 @@ builder.Services.AddControllers()
     });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddTransient<IBookingRepository, BookingRepository>();
 
 // Add CORS policy
 builder.Services.AddCors(options =>

@@ -16,7 +16,7 @@ public class HotelDto
     public string CountryCode { get; set; } = string.Empty;
 
     // Rooms information
-    public List<RoomDto> Rooms { get; set; } = new();
+    public List<RoomDto> Rooms { get; set; } = [];
 }
 
 public class RoomDto

@@ -61,10 +61,10 @@ public class CitiesController(HotelBookingContext context, ILogger<CitiesControl
     public async Task<ActionResult<City>> PostCity(City city)
     {
         _logger.LogInformation("Creating new city: {Name}", city?.Name);
-        _context.Cities.Add(city);
+        _context.Cities.Add(city!);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetCity), new { id = city.Id }, city);
+        return CreatedAtAction(nameof(GetCity), new { id = city!.Id }, city);
     }
 
     [HttpPut("{id}")]
