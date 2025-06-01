@@ -9,9 +9,9 @@ namespace HotelBookingApi.Repository
     {
         private readonly HotelBookingContext _context = context;
 
-        public async Task<IEnumerable<BookingDto>> GetBookings()
+        public IQueryable<BookingDto> GetBookings()
         {
-            var bookings = await _context.Bookings
+            var bookings = _context.Bookings
                 .Include(b => b.Room)
                     .ThenInclude(r => r.Hotel)
                         .ThenInclude(h => h.City)
@@ -34,10 +34,17 @@ namespace HotelBookingApi.Repository
                     HotelCity = b.Room.Hotel.City.Name,
                     HotelCountry = b.Room.Hotel.City.Country.Name,
                     CountryCode = b.Room.Hotel.City.Country.Code
-                })
-                .ToListAsync();
+                });
 
             return bookings;
+        }
+
+        public async Task<BookingDto?> GetBooking(int id)
+        {
+            var booking = await GetBookings()
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            return booking;
         }
 
         // TO DO: add other methods

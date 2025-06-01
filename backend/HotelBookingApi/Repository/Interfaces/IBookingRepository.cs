@@ -4,6 +4,8 @@ namespace HotelBookingApi.Repository.Interfaces
 {
     public interface IBookingRepository
     {
-        Task<IEnumerable<BookingDto>> GetBookings();
+        IQueryable<BookingDto> GetBookings();
+
+        Task<BookingDto?> GetBooking(int id);
     }
 }

@@ -1,9 +1,9 @@
 using HotelBookingApi.Data;
-using HotelBookingApi.Models;
 using HotelBookingApi.DTOs;
+using HotelBookingApi.Models;
+using HotelBookingApi.Repository.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using HotelBookingApi.Repository.Interfaces;
 
 namespace HotelBookingApi.Controllers;
 
@@ -20,7 +20,7 @@ public class BookingsController(HotelBookingContext context, IBookingRepository 
     public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookings()
     {
         _logger.LogInformation("Getting all bookings");
-        var bookings = await _bookingRepository.GetBookings();
+        var bookings = await _bookingRepository.GetBookings().ToListAsync();
 
         return bookings.ToList();
     }
@@ -29,30 +29,7 @@ public class BookingsController(HotelBookingContext context, IBookingRepository 
     public async Task<ActionResult<BookingDto>> GetBooking(int id)
     {
         _logger.LogInformation("Getting booking by id={BookingId}", id);
-        var booking = await _context.Bookings
-            .Include(b => b.Room)
-                .ThenInclude(r => r.Hotel)
-                    .ThenInclude(h => h.City)
-                        .ThenInclude(c => c.Country)
-            .Select(b => new BookingDto
-            {
-                Id = b.Id,
-                GuestName = b.GuestName,
-                GuestEmail = b.GuestEmail,
-                CheckInDate = b.CheckInDate,
-                CheckOutDate = b.CheckOutDate,
-                TotalPrice = b.TotalPrice,
-                Status = b.Status,
-                RoomNumber = b.Room.RoomNumber,
-                RoomType = b.Room.Type,
-                PricePerNight = b.Room.PricePerNight,
-                HotelName = b.Room.Hotel.Name,
-                HotelAddress = b.Room.Hotel.Address,
-                HotelCity = b.Room.Hotel.City.Name,
-                HotelCountry = b.Room.Hotel.City.Country.Name,
-                CountryCode = b.Room.Hotel.City.Country.Code
-            })
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var booking = await _bookingRepository.GetBooking(id);
 
         if (booking == null)
         {
