@@ -115,7 +115,7 @@ public class HotelsController(HotelBookingContext context, ILogger<HotelsControl
                     Type = r.Type,
                     PricePerNight = r.PricePerNight,
                     IsAvailable = r.IsAvailable
-                }).ToList() ?? new List<RoomDto>()
+                }).ToList() ?? []
             };
 
             return Ok(hotelDto);

@@ -1,6 +1,7 @@
 using HotelBookingApi.Data;
-using HotelBookingApi.Models;
 using HotelBookingApi.DTOs;
+using HotelBookingApi.Models;
+using HotelBookingApi.Repository.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,31 +9,26 @@ namespace HotelBookingApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class RoomsController(HotelBookingContext context, ILogger<RoomsController> logger) : ControllerBase
+public class RoomsController(HotelBookingContext context, IRoomRepository roomRepository, ILogger<RoomsController> logger) : ControllerBase
 {
+    // TO DO: remove context, use repository
     private readonly HotelBookingContext _context = context;
+    private readonly IRoomRepository _roomRepository = roomRepository;
     private readonly ILogger<RoomsController> _logger = logger;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Room>>> GetRooms()
     {
         _logger.LogInformation("Getting all rooms");
-        return await _context.Rooms
-            .Include(r => r.Hotel)
-                .ThenInclude(h => h.City)
-                    .ThenInclude(c => c.Country)
-            .ToListAsync();
+        return await _roomRepository.GetRooms().ToListAsync();
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Room>> GetRoom(int id)
     {
         _logger.LogInformation("Getting room by id={RoomId}", id);
-        var room = await _context.Rooms
-            .Include(r => r.Hotel)
-                .ThenInclude(h => h.City)
-                    .ThenInclude(c => c.Country)
-            .FirstOrDefaultAsync(r => r.Id == id);
+
+        var room = await _roomRepository.GetRoom(id);
 
         if (room == null)
         {

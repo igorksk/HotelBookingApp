@@ -9,11 +9,12 @@ namespace HotelBookingApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class BookingsController(HotelBookingContext context, IBookingRepository bookingRepository, ILogger<BookingsController> logger) : ControllerBase
+public class BookingsController(HotelBookingContext context, IBookingRepository bookingRepository, IRoomRepository roomRepository, ILogger<BookingsController> logger) : ControllerBase
 {
     // TO DO: remove context, use repository
     private readonly HotelBookingContext _context = context;
     private readonly IBookingRepository _bookingRepository = bookingRepository;
+    private readonly IRoomRepository _roomRepository = roomRepository;
     private readonly ILogger<BookingsController> _logger = logger;
 
     [HttpGet]
@@ -43,11 +44,7 @@ public class BookingsController(HotelBookingContext context, IBookingRepository 
     public async Task<ActionResult<BookingDto>> PostBooking(CreateBookingDto createBookingDto)
     {
         _logger.LogInformation("Creating new booking for guest: {GuestName}", createBookingDto?.GuestName);
-        var room = await _context.Rooms
-            .Include(r => r.Hotel)
-                .ThenInclude(h => h.City)
-                    .ThenInclude(c => c.Country)
-            .FirstOrDefaultAsync(r => r.Id == createBookingDto!.RoomId);
+        var room = await _roomRepository.GetRoom(createBookingDto!.RoomId);
 
         if (room == null)
         {

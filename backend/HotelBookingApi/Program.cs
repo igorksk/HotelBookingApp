@@ -18,6 +18,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<IBookingRepository, BookingRepository>();
+builder.Services.AddTransient<IRoomRepository, RoomRepository>();
 
 // Add CORS policy
 builder.Services.AddCors(options =>
