@@ -47,6 +47,16 @@ namespace HotelBookingApi.Repository
             return booking;
         }
 
+        public async Task<bool> IsRoomBookedAsync(int roomId, DateTime checkIn, DateTime checkOut, int? excludeBookingId = null)
+        {
+            return await _context.Bookings
+                .Where(b => b.RoomId == roomId && (excludeBookingId == null || b.Id != excludeBookingId))
+                .AnyAsync(b =>
+                    (checkIn >= b.CheckInDate && checkIn < b.CheckOutDate) ||
+                    (checkOut > b.CheckInDate && checkOut <= b.CheckOutDate) ||
+                    (checkIn <= b.CheckInDate && checkOut >= b.CheckOutDate));
+        }
+
         // TO DO: add other methods
     }
 }

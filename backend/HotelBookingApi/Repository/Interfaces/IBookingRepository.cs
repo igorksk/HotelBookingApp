@@ -7,5 +7,7 @@ namespace HotelBookingApi.Repository.Interfaces
         IQueryable<BookingDto> GetBookings();
 
         Task<BookingDto?> GetBooking(int id);
+
+        Task<bool> IsRoomBookedAsync(int roomId, DateTime checkIn, DateTime checkOut, int? excludeBookingId = null);
     }
 }

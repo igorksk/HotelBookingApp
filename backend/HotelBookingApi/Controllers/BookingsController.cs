@@ -57,13 +57,7 @@ public class BookingsController(HotelBookingContext context, IBookingRepository 
         }
 
         // Check if the room is already booked for the given dates
-        var existingBooking = await _context.Bookings
-            .AnyAsync(b => b.RoomId == createBookingDto!.RoomId &&
-                          ((createBookingDto.CheckInDate >= b.CheckInDate && createBookingDto.CheckInDate < b.CheckOutDate) ||
-                           (createBookingDto.CheckOutDate > b.CheckInDate && createBookingDto.CheckOutDate <= b.CheckOutDate) ||
-                           (createBookingDto.CheckInDate <= b.CheckInDate && createBookingDto.CheckOutDate >= b.CheckOutDate)));
-
-        if (existingBooking)
+        if (await _bookingRepository.IsRoomBookedAsync(createBookingDto.RoomId, createBookingDto.CheckInDate, createBookingDto.CheckOutDate))
         {
             return BadRequest("Room is already booked for the selected dates");
         }
@@ -124,13 +118,7 @@ public class BookingsController(HotelBookingContext context, IBookingRepository 
         // Check if the room is available for the new dates
         if (booking.CheckInDate != updateBookingDto.CheckInDate || booking.CheckOutDate != updateBookingDto.CheckOutDate)
         {
-            var existingBooking = await _context.Bookings
-                .AnyAsync(b => b.RoomId == booking.RoomId && b.Id != id &&
-                              ((updateBookingDto.CheckInDate >= b.CheckInDate && updateBookingDto.CheckInDate < b.CheckOutDate) ||
-                               (updateBookingDto.CheckOutDate > b.CheckInDate && updateBookingDto.CheckOutDate <= b.CheckOutDate) ||
-                               (updateBookingDto.CheckInDate <= b.CheckInDate && updateBookingDto.CheckOutDate >= b.CheckOutDate)));
-
-            if (existingBooking)
+            if (await _bookingRepository.IsRoomBookedAsync(booking.RoomId, updateBookingDto.CheckInDate, updateBookingDto.CheckOutDate, id))
             {
                 return BadRequest("Room is already booked for the selected dates");
             }
