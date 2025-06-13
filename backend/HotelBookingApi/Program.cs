@@ -6,42 +6,42 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Add services
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.WriteIndented = true;
     });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Dependency Injection
 builder.Services.AddTransient<IBookingRepository, BookingRepository>();
 builder.Services.AddTransient<ICityRepository, CityRepository>();
 builder.Services.AddTransient<ICountryRepository, CountryRepository>();
 builder.Services.AddTransient<IHotelRepository, HotelRepository>();
 builder.Services.AddTransient<IRoomRepository, RoomRepository>();
 
-// Add CORS policy
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend",
-        builder =>
-        {
-            builder.WithOrigins("http://frontend:3000", "http://localhost:3000")
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
-});
-
-// Add in-memory database
+// DbContext (In-Memory)
 builder.Services.AddDbContext<HotelBookingContext>(options =>
     options.UseInMemoryDatabase("HotelBookingDb"));
 
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000", "http://frontend:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -53,7 +53,7 @@ app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
 
-// Add error handling middleware
+// Global error handling
 app.Use(async (context, next) =>
 {
     try
@@ -63,11 +63,15 @@ app.Use(async (context, next) =>
     catch (Exception ex)
     {
         context.Response.StatusCode = 500;
-        await context.Response.WriteAsJsonAsync(new { error = "Internal server error", message = ex.Message });
+        await context.Response.WriteAsJsonAsync(new
+        {
+            error = "Internal server error",
+            message = ex.Message
+        });
     }
 });
 
-// Seed initial data
+// Seed data
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<HotelBookingContext>();
