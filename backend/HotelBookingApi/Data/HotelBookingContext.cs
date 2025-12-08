@@ -24,5 +24,34 @@ public class HotelBookingContext(DbContextOptions<HotelBookingContext> options) 
             .WithOne(h => h.City)
             .HasForeignKey(h => h.CityId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Indexes to improve query performance
+        modelBuilder.Entity<Country>()
+            .HasIndex(c => c.Name);
+
+        modelBuilder.Entity<Country>()
+            .HasIndex(c => c.Code);
+
+        modelBuilder.Entity<City>()
+            .HasIndex(c => c.Name);
+
+        modelBuilder.Entity<City>()
+            .HasIndex(c => c.CountryId);
+
+        modelBuilder.Entity<Hotel>()
+            .HasIndex(h => h.CityId);
+
+        modelBuilder.Entity<Room>()
+            .HasIndex(r => r.HotelId);
+
+        modelBuilder.Entity<Room>()
+            .HasIndex(r => r.IsAvailable);
+
+        modelBuilder.Entity<Booking>()
+            .HasIndex(b => b.RoomId);
+
+        // Composite index to speed up date range checks for a room
+        modelBuilder.Entity<Booking>()
+            .HasIndex(b => new { b.RoomId, b.CheckInDate, b.CheckOutDate });
     }
 }
