@@ -3,6 +3,8 @@ using HotelBookingApi.Repository;
 using HotelBookingApi.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using System.Reflection;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +17,28 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Hotel Booking API",
+        Version = "v1",
+        Description = "API for managing hotels, rooms and bookings.",
+        Contact = new OpenApiContact
+        {
+            Name = "HotelBookingApi",
+            Email = "support@example.com"
+        }
+    });
+
+    // include XML comments (enable in csproj with GenerateDocumentationFile)
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
+});
 
 // Dependency Injection
 builder.Services.AddTransient<IBookingRepository, BookingRepository>();
