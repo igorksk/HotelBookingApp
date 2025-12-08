@@ -32,7 +32,10 @@ public class RoomsController(IRoomRepository roomRepository, ILogger<RoomsContro
     public async Task<ActionResult<Room>> PostRoom(CreateRoomDto dto)
     {
         _logger.LogInformation("Creating new room: {RoomNumber}", dto?.RoomNumber);
-        if (dto == null || !await _roomRepository.HotelExistsAsync(dto.HotelId))
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        if (!await _roomRepository.HotelExistsAsync(dto!.HotelId))
             return BadRequest("Hotel not found");
 
         var room = await _roomRepository.CreateRoomAsync(dto);
@@ -45,8 +48,11 @@ public class RoomsController(IRoomRepository roomRepository, ILogger<RoomsContro
     public async Task<IActionResult> PutRoom(int id, UpdateRoomDto dto)
     {
         _logger.LogInformation("Updating room id={RoomId}", id);
-        if (id != dto.Id)
-            return BadRequest("Id mismatch");
+        if (!ModelState.IsValid || id != dto.Id)
+            return BadRequest(ModelState);
+
+        if (!await _roomRepository.HotelExistsAsync(dto.HotelId))
+            return BadRequest("Hotel not found");
 
         var success = await _roomRepository.UpdateRoomAsync(id, dto);
         return success ? NoContent() : NotFound();

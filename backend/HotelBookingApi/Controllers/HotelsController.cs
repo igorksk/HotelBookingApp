@@ -30,8 +30,8 @@ public class HotelsController(IHotelRepository repository, ILogger<HotelsControl
     [HttpPost]
     public async Task<ActionResult<Hotel>> PostHotel(CreateHotelDto dto)
     {
-        if (dto == null || string.IsNullOrWhiteSpace(dto.Name) || dto.CityId <= 0)
-            return BadRequest("Invalid hotel data");
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
         if (!await repository.CityExistsAsync(dto.CityId))
             return BadRequest("Specified city does not exist");
@@ -45,8 +45,8 @@ public class HotelsController(IHotelRepository repository, ILogger<HotelsControl
     [HttpPut("{id}")]
     public async Task<IActionResult> PutHotel(int id, UpdateHotelDto dto)
     {
-        if (dto == null || id != dto.Id)
-            return BadRequest("Invalid update data");
+        if (!ModelState.IsValid || id != dto.Id)
+            return BadRequest(ModelState);
 
         if (!await repository.CityExistsAsync(dto.CityId))
             return BadRequest("Specified city does not exist");

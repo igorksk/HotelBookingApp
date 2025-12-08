@@ -101,6 +101,11 @@ public class BookingsController(IBookingRepository bookingRepository, IRoomRepos
     public async Task<IActionResult> PutBooking(int id, UpdateBookingDto updateBookingDto)
     {
         _logger.LogInformation("Updating booking id={BookingId}", id);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        if (updateBookingDto.CheckInDate.Date >= updateBookingDto.CheckOutDate.Date)
+            return BadRequest("Check-out date must be after check-in date");
 
         var booking = await _bookingRepository.GetBookingWithRoomAsync(id);
         if (booking == null)
