@@ -75,7 +75,8 @@ app.Use(async (context, next) =>
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<HotelBookingContext>();
-    SeedData.Initialize(context);
+    // run async seed method synchronously during startup
+    SeedData.InitializeAsync(context).GetAwaiter().GetResult();
 }
 
 app.Run();
