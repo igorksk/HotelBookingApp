@@ -91,8 +91,7 @@ export const bookingsApi = {
   },
 
   cancel: async (bookingId: number) => {
-    const response = await api.post<BookingDto>(`/Bookings/${bookingId}/cancel`);
-    return response.data;
+    await api.delete(`/Bookings/${bookingId}`);
   },
 };
 
