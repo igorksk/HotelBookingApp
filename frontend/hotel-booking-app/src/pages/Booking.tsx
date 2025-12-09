@@ -29,6 +29,12 @@ const BookingPage = () => {
     checkInDate: '',
     checkOutDate: '',
   });
+  const [formErrors, setFormErrors] = useState({
+    guestName: '',
+    guestEmail: '',
+    checkInDate: '',
+    checkOutDate: '',
+  });
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -68,6 +74,35 @@ const BookingPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!hotelId || !roomId) return;
+
+    // Client-side validation
+    let errors = { guestName: '', guestEmail: '', checkInDate: '', checkOutDate: '' };
+    let valid = true;
+    if (!formData.guestName.trim()) {
+      errors.guestName = 'Guest name is required.';
+      valid = false;
+    }
+    if (!formData.guestEmail.trim()) {
+      errors.guestEmail = 'Email is required.';
+      valid = false;
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.guestEmail)) {
+      errors.guestEmail = 'Enter a valid email address.';
+      valid = false;
+    }
+    if (!formData.checkInDate) {
+      errors.checkInDate = 'Check-in date is required.';
+      valid = false;
+    }
+    if (!formData.checkOutDate) {
+      errors.checkOutDate = 'Check-out date is required.';
+      valid = false;
+    }
+    if (formData.checkInDate && formData.checkOutDate && formData.checkInDate > formData.checkOutDate) {
+      errors.checkOutDate = 'Check-out must be after check-in.';
+      valid = false;
+    }
+    setFormErrors(errors);
+    if (!valid) return;
 
     try {
       const booking: Omit<Booking, 'id' | 'room' | 'totalPrice'> = {
@@ -159,6 +194,8 @@ const BookingPage = () => {
             onChange={(e) => setFormData({ ...formData, guestName: e.target.value })}
             required
             margin="normal"
+            error={!!formErrors.guestName}
+            helperText={formErrors.guestName}
           />
           <TextField
             fullWidth
@@ -168,6 +205,8 @@ const BookingPage = () => {
             onChange={(e) => setFormData({ ...formData, guestEmail: e.target.value })}
             required
             margin="normal"
+            error={!!formErrors.guestEmail}
+            helperText={formErrors.guestEmail}
           />
           <TextField
             fullWidth
@@ -178,6 +217,8 @@ const BookingPage = () => {
             required
             margin="normal"
             InputLabelProps={{ shrink: true }}
+            error={!!formErrors.checkInDate}
+            helperText={formErrors.checkInDate}
           />
           <TextField
             fullWidth
@@ -188,6 +229,8 @@ const BookingPage = () => {
             required
             margin="normal"
             InputLabelProps={{ shrink: true }}
+            error={!!formErrors.checkOutDate}
+            helperText={formErrors.checkOutDate}
           />
 
           <Button
