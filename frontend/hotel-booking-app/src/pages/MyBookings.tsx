@@ -18,6 +18,7 @@ const MyBookings = () => {
   const [bookings, setBookings] = useState<BookingDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,6 +39,19 @@ const MyBookings = () => {
 
     fetchBookings();
   }, []);
+
+  const handleCancelBooking = async (bookingId: number) => {
+    setCancelError(null);
+    try {
+      await bookingsApi.cancel(bookingId);
+      // Refresh bookings list
+      const data = await bookingsApi.getByUser(1);
+      setBookings(data);
+    } catch (err) {
+      setCancelError('Failed to cancel booking. Please try again later.');
+      console.error('Error cancelling booking:', err);
+    }
+  };
 
   if (loading) {
     return (
@@ -107,7 +121,7 @@ const MyBookings = () => {
                       <Button
                         variant="outlined"
                         color="error"
-                        onClick={() => bookingsApi.cancel(booking.id)}
+                        onClick={() => handleCancelBooking(booking.id)}
                       >
                         Cancel Booking
                       </Button>
@@ -118,6 +132,11 @@ const MyBookings = () => {
             </Card>
           ))}
         </Box>
+      )}
+      {cancelError && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {cancelError}
+        </Alert>
       )}
     </Container>
   );
